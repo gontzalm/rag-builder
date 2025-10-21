@@ -57,12 +57,11 @@ async def ingest(spec: IngestionSpec) -> IngestionStartedResponse:
         "ingestion_id": str(ingestion_id),
         "spec": spec.model_dump(),
     }
-
     sqs.send_message(  # pyright: ignore[reportUnknownMemberType]
         QueueUrl=INGESTION_QUEUE,
         MessageBody=json.dumps(message_body),
     )
-    logger.info("Message sent for ingestion ID '%s'", ingestion_id)
+    logger.info("Message sent for Ingestion ID '%s'", ingestion_id)
 
     # TODO: add ingestion status to DDB table
 

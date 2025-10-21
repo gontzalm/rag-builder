@@ -3,6 +3,7 @@ name = "rag-builder"
 version = "0.1.0"
 requires-python = ">= 3.12"
 dependencies = [
-    "aws-cdk-lib>=2.220.0",
-    "constructs>=10.4.2",
+  "aws-cdk-aws-lambda-python-alpha>=2.220.0a0",
+  "aws-cdk-lib>=2.220.0",
+  "constructs>=10.4.2",
 ]

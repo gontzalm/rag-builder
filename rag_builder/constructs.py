@@ -3,11 +3,34 @@ from pathlib import Path
 from typing import final
 
 import aws_cdk as cdk
+import aws_cdk.aws_lambda_python_alpha as lambda_python
 from aws_cdk import aws_apigateway as apigw
 from aws_cdk import aws_lambda as lambda_
 from constructs import Construct
 
 BASE_DIR = Path(__file__).parent
+
+
+class PythonFunction(lambda_python.PythonFunction):
+    def __init__(
+        self,
+        scope: Construct,
+        id: str,
+        *,
+        runtime: lambda_.Runtime = lambda_.Runtime.PYTHON_3_13,  # pyright: ignore[reportAny]
+        memory: int = 128,
+        environment: dict[str, str] | None,
+    ) -> None:
+        super().__init__(
+            scope,
+            id,
+            entry=str(BASE_DIR / "lambda" / id.removesuffix("-function")),
+            index="function.py",
+            runtime=runtime,
+            architecture=lambda_.Architecture.ARM_64,  # pyright: ignore[reportAny]
+            memory_size=memory,
+            environment=environment,
+        )
 
 
 @final
