@@ -17,9 +17,9 @@ class RagBuilderStack(cdk.Stack):
             self, "embeddings-bucket", removal_policy=cdk.RemovalPolicy.DESTROY
         )
 
-        ingestion_status_table = dynamodb.Table(
+        ingestion_history_table = dynamodb.Table(
             self,
-            "ingestion-status-table",
+            "ingestion-history-table",
             partition_key=dynamodb.Attribute(
                 name="ingestion_id",
                 type=dynamodb.AttributeType.STRING,
@@ -47,22 +47,25 @@ class RagBuilderStack(cdk.Stack):
             self,
             "backend-api-fastapi",
             python_runtime=lambda_.Runtime.PYTHON_3_13,  # pyright: ignore[reportAny]
-            environment={"INGESTION_QUEUE": ingestion_queue.queue_name},
+            environment={
+                "INGESTION_QUEUE": ingestion_queue.queue_url,
+                "INGESTION_HISTORY_TABLE": ingestion_history_table.table_name,
+            },
         )
-        ingestion_status_table.grant_read_write_data(backend_api)
-        ingestion_queue.grant_send_messages(backend_api)
+        _ = ingestion_history_table.grant_read_write_data(backend_api.function)
+        _ = ingestion_queue.grant_send_messages(backend_api.function)
 
         ingest_function = PythonFunction(
             self,
             "ingest-function",
             memory=1024,
             environment={
-                "BUCKET": embeddings_bucket.name,
-                "INGESTION_STATUS_TABLE": ingestion_status_table.name,
+                "EMBEDDINGS_BUCKET": embeddings_bucket.bucket_name,
+                "INGESTION_HISTORY_TABLE": ingestion_history_table.table_name,
             },
         )
         ingest_function.add_event_source(
             lambda_events.SqsEventSource(ingestion_queue, batch_size=1)
         )
-        embeddings_bucket.grant_read_write(ingest_function)
-        ingestion_status_table.grant_read_write_data(ingest_function)
+        _ = embeddings_bucket.grant_read_write(ingest_function)
+        _ = ingestion_history_table.grant_read_write_data(ingest_function)

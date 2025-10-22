@@ -42,7 +42,7 @@ focusing on the asynchronous ingestion pattern.
 
 ### A. The Asynchronous Ingestion Flow
 
-- [ ] /ingest Endpoint (API Handler Lambda):
+- [ ] /ingest Endpoint:
   - [x] Implement the POST /ingest FastAPI endpoint to accept a source and url
         (e.g., a PDF link).
 
@@ -101,7 +101,7 @@ use.
   - [ ] Integrate Cognito User Pool with the FastAPI frontend (e.g., using a
         library to validate JWT tokens).
 
-  - [ ] Secure all backend endpoints to require a valid user token.
+  - [x] Secure all backend endpoints to require a valid user token.
 
 - [ ] Frontend Pages (Jinja2 Templates):
   - [ ] Home/Login Page: Simple, branded login using the Cognito hosted UI or a

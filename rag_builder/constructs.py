@@ -3,6 +3,7 @@ from pathlib import Path
 from typing import final
 
 import aws_cdk as cdk
+import aws_cdk.aws_cognito as cognito
 import aws_cdk.aws_lambda_python_alpha as lambda_python
 from aws_cdk import aws_apigateway as apigw
 from aws_cdk import aws_lambda as lambda_
@@ -24,12 +25,15 @@ class PythonFunction(lambda_python.PythonFunction):
         super().__init__(
             scope,
             id,
-            entry=str(BASE_DIR / "lambda" / id.removesuffix("-function")),
             index="function.py",
             runtime=runtime,
             architecture=lambda_.Architecture.ARM_64,  # pyright: ignore[reportAny]
             memory_size=memory,
             environment=environment,
+            entry=str(BASE_DIR / "lambda" / id.removesuffix("-function")),
+            bundling=lambda_python.BundlingOptions(
+                asset_excludes=[".venv", "__pycache__"]
+            ),
         )
 
 
@@ -42,6 +46,7 @@ class FastApiLambdaFunction(Construct):
         *,
         python_runtime: lambda_.Runtime,
         environment: dict[str, str] | None = None,
+        cognito_authorizer_pool: cognito.UserPool | None = None,
     ) -> None:
         super().__init__(scope, id)
 
@@ -49,7 +54,7 @@ class FastApiLambdaFunction(Construct):
             #!/bin/bash
             PATH=$PATH:$LAMBDA_TASK_ROOT/bin \\
                 PYTHONPATH=$PYTHONPATH:/opt/python:$LAMBDA_RUNTIME_DIR
-                exec python -m uvicorn --port ${PORT} app.main:app
+                exec python -m uvicorn --port ${PORT} --root-path /prod app.main:app
         """)
 
         self.function = lambda_.Function(
@@ -95,4 +100,13 @@ class FastApiLambdaFunction(Construct):
             scope,
             f"{id}-apigw",
             handler=self.function,  # pyright: ignore[reportArgumentType]
+            default_method_options=apigw.MethodOptions(
+                authorizer=apigw.CognitoUserPoolsAuthorizer(
+                    self,
+                    f"{id}-cognito-authorizer",
+                    cognito_user_pools=[cognito_authorizer_pool],
+                )
+            )
+            if cognito_authorizer_pool is not None
+            else None,
         )
