@@ -4,4 +4,10 @@ version = "0.1.0"
 requires-python = ">= 3.12"
 dependencies = [
     "aws-lambda-powertools>=3.22.0",
+    "httpx>=0.28.1",
+    "lancedb>=0.25.2",
+    "langchain>=1.0.2",
+    "langchain-aws>=1.0.0",
+    "langchain-community>=0.4",
+    "pypdf>=6.1.3",
 ]

@@ -48,31 +48,28 @@ focusing on the asynchronous ingestion pattern.
 
   - [x] Generate a unique `ingestion_id` (UUID).
 
-  - [ ] Write a new record to the DynamoDB table with status: 'Pending'.
+  - [x] Write a new record to the DynamoDB table with status: 'Pending'.
 
   - [x] Send a message to the SQS Queue containing the ingestion specs.
 
-  - [x] Return a success response with the `ingestion_id` to the user.
-
-- [ ] Ingestion Worker Logic (SQS Triggered Lambda):
+- [x] Ingestion Worker Logic (SQS Triggered Lambda):
   - [x] Configure the Lambda to be triggered by new messages on the SQS Queue.
 
   - [x] Parse the ingestion specs from the SQS message body.
 
-  - [ ] LangChain RAG Logic:
-    - [ ] Use a LangChain Document Loader (e.g., UnstructuredURLLoader for a
-          PDF).
+  - [x] LangChain RAG Logic:
+    - [x] Use a LangChain Document Loader
 
-    - [ ] Implement an appropriate Text Splitter (e.g.,
+    - [x] Implement an appropriate Text Splitter (e.g.,
           RecursiveCharacterTextSplitter).
 
-    - [ ] Initialize the Bedrock Titan Embedding Model.
+    - [x] Initialize the Bedrock Titan Embedding Model.
 
-    - [ ] Create/Open the LanceDB connection using the S3 bucket path.
+    - [x] Create/Open the LanceDB connection using the S3 bucket path.
 
-    - [ ] Ingest the text chunks and their embeddings into LanceDB.
+    - [x] Ingest the text chunks and their embeddings into LanceDB.
 
-  - [ ] Status Update: Update the DynamoDB record for the job_id to status
+  - [x] Status Update: Update the DynamoDB record for the job_id to status
         'Completed' or status 'Failed' (with a failure message).
 
 ### B. The Query Flow
@@ -86,7 +83,7 @@ focusing on the asynchronous ingestion pattern.
 
   - [ ] Use the LanceDB index as a LangChain Retriever.
 
-  - [ ] Initialize an Amazon Bedrock LLM (e.g., Claude Instant).
+  - [ ] Initialize an Amazon Bedrock LLM
 
   - [ ] Execute the basic RAG Chain (Retriever + LLM) to get the final answer.
 

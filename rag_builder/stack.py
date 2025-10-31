@@ -1,12 +1,17 @@
 import aws_cdk as cdk
+import aws_cdk.aws_bedrock as bedrock
 import aws_cdk.aws_dynamodb as dynamodb
-import aws_cdk.aws_lambda as lambda_
+import aws_cdk.aws_iam as iam
 import aws_cdk.aws_lambda_event_sources as lambda_events
 import aws_cdk.aws_s3 as s3
 from aws_cdk import aws_sqs as sqs
 from constructs import Construct
 
-from rag_builder.constructs import FastApiLambdaFunction, PythonFunction
+from rag_builder.constructs import (
+    DockerPythonFunction,
+    FastApiLambdaFunction,
+    PythonFunction,
+)
 
 
 class RagBuilderStack(cdk.Stack):
@@ -15,6 +20,12 @@ class RagBuilderStack(cdk.Stack):
 
         embeddings_bucket = s3.Bucket(
             self, "embeddings-bucket", removal_policy=cdk.RemovalPolicy.DESTROY
+        )
+
+        embeddings_model = bedrock.FoundationModel.from_foundation_model_id(
+            self,
+            "embeddings-model",
+            bedrock.FoundationModelIdentifier.AMAZON_TITAN_EMBED_TEXT_V2_0,  # pyright: ignore[reportAny]
         )
 
         ingestion_history_table = dynamodb.Table(
@@ -43,25 +54,43 @@ class RagBuilderStack(cdk.Stack):
             removal_policy=cdk.RemovalPolicy.DESTROY,
         )
 
+        deletion_queue = sqs.Queue(
+            self,
+            "deletion-queue",
+            visibility_timeout=cdk.Duration.minutes(5),
+            dead_letter_queue=sqs.DeadLetterQueue(
+                max_receive_count=2,
+                queue=sqs.Queue(
+                    self,
+                    "deletion-queue-dlq",
+                    removal_policy=cdk.RemovalPolicy.DESTROY,
+                ),
+            ),
+            removal_policy=cdk.RemovalPolicy.DESTROY,
+        )
+
         backend_api = FastApiLambdaFunction(
             self,
             "backend-api-fastapi",
-            python_runtime=lambda_.Runtime.PYTHON_3_13,  # pyright: ignore[reportAny]
             environment={
                 "INGESTION_QUEUE": ingestion_queue.queue_url,
+                "DELETION_QUEUE": deletion_queue.queue_url,
                 "INGESTION_HISTORY_TABLE": ingestion_history_table.table_name,
             },
         )
         _ = ingestion_history_table.grant_read_write_data(backend_api.function)
         _ = ingestion_queue.grant_send_messages(backend_api.function)
+        _ = deletion_queue.grant_send_messages(backend_api.function)
 
-        ingest_function = PythonFunction(
+        ingest_function = DockerPythonFunction(
             self,
             "ingest-function",
             memory=1024,
+            timeout=cdk.Duration.minutes(5),
             environment={
                 "EMBEDDINGS_BUCKET": embeddings_bucket.bucket_name,
-                "INGESTION_HISTORY_TABLE": ingestion_history_table.table_name,
+                "EMBEDDINGS_MODEL": embeddings_model.model_arn.partition("/")[2],
+                "BACKEND_API_URL": backend_api.apigw.url,
             },
         )
         ingest_function.add_event_source(
@@ -69,3 +98,20 @@ class RagBuilderStack(cdk.Stack):
         )
         _ = embeddings_bucket.grant_read_write(ingest_function)
         _ = ingestion_history_table.grant_read_write_data(ingest_function)
+        ingest_function.add_to_role_policy(
+            iam.PolicyStatement(
+                actions=["bedrock:InvokeModel"], resources=[embeddings_model.model_arn]
+            )
+        )
+
+        delete_function = PythonFunction(
+            self,
+            "delete-function",
+            memory=1024,
+            timeout=cdk.Duration.minutes(1),
+            environment={
+                "EMBEDDINGS_BUCKET": embeddings_bucket.bucket_name,
+            },
+        )
+        _ = embeddings_bucket.grant_read(delete_function)
+        _ = embeddings_bucket.grant_delete(delete_function)
