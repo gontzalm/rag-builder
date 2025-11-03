@@ -1,6 +1,5 @@
-import json
 import logging
-from typing import Any, TypedDict
+from typing import TypedDict
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.INFO)

@@ -53,6 +53,7 @@ class PythonFunction(lambda_.Function):
             id,
             runtime=runtime,
             architecture=lambda_.Architecture.ARM_64,  # pyright: ignore[reportAny]
+            memory_size=memory,
             handler="function.handler",
             code=lambda_.Code.from_asset(
                 str(lambda_code),
@@ -64,7 +65,7 @@ class PythonFunction(lambda_.Function):
                         "-c",
                         " && ".join(
                             [
-                                "pip install --platform manylinux2014_aarch64 --only-binary=:all: -r requirements.txt -t /asset-output",
+                                "pip install -r requirements.txt -t /asset-output",
                                 "rsync -a --exclude .venv --exclude __pycache__ . /asset-output",
                             ]
                         ),
@@ -140,6 +141,7 @@ class FastApiLambdaFunction(Construct):
         id: str,
         *,
         runtime: lambda_.Runtime = lambda_.Runtime.PYTHON_3_13,  # pyright: ignore[reportAny]
+        memory: int = 256,
         environment: dict[str, str] | None = None,
         cognito_authorizer_pool: cognito.UserPool | None = None,
     ) -> None:
@@ -154,6 +156,7 @@ class FastApiLambdaFunction(Construct):
             f"{id}-function",
             runtime=runtime,
             architecture=lambda_.Architecture.ARM_64,  # pyright: ignore[reportAny]
+            memory_size=memory,
             handler="run.sh",
             layers=[
                 lambda_.LayerVersion.from_layer_version_arn(

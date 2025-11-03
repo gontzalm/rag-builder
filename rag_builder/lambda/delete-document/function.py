@@ -4,6 +4,8 @@ from typing import Any, TypedDict
 
 from aws_lambda_powertools.utilities.data_classes.sqs_event import SQSEvent
 
+from deleter import LanceDbDeleter
+
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.INFO)
 
@@ -15,10 +17,12 @@ class DeletionMessage(TypedDict):
 def handler(event: dict[str, Any], _) -> None:  # pyright: ignore[reportExplicitAny]
     sqs_event = SQSEvent(event)
     record = next(sqs_event.records)
-    logger.info("Processing SQS message ID %s", record.message_id)
+    logger.info("Processing SQS message ID '%s'", record.message_id)
 
     message_data: DeletionMessage = json.loads(record.body)  # pyright: ignore[reportAny]
 
     ingestion_id = message_data["ingestion_id"]
 
-    logger.info("Successfully parsed message for Ingestion ID %s", ingestion_id)
+    logger.info("Successfully parsed message for Ingestion ID '%s'", ingestion_id)
+
+    LanceDbDeleter(ingestion_id).delete_document()

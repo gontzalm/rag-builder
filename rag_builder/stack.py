@@ -18,14 +18,9 @@ class RagBuilderStack(cdk.Stack):
     def __init__(self, scope: Construct, id: str, *, env: cdk.Environment) -> None:
         super().__init__(scope, id, env=env)
 
+        # Storage
         embeddings_bucket = s3.Bucket(
             self, "embeddings-bucket", removal_policy=cdk.RemovalPolicy.DESTROY
-        )
-
-        embeddings_model = bedrock.FoundationModel.from_foundation_model_id(
-            self,
-            "embeddings-model",
-            bedrock.FoundationModelIdentifier.AMAZON_TITAN_EMBED_TEXT_V2_0,  # pyright: ignore[reportAny]
         )
 
         ingestion_history_table = dynamodb.Table(
@@ -39,6 +34,19 @@ class RagBuilderStack(cdk.Stack):
             removal_policy=cdk.RemovalPolicy.DESTROY,
         )
 
+        # Bedrock Models
+        embeddings_model = bedrock.FoundationModel.from_foundation_model_id(
+            self,
+            "embeddings-model",
+            bedrock.FoundationModelIdentifier.AMAZON_TITAN_EMBED_TEXT_V2_0,  # pyright: ignore[reportAny]
+        )
+        agent_model = bedrock.FoundationModel.from_foundation_model_id(
+            self,
+            "agent-model",
+            bedrock.FoundationModelIdentifier.AMAZON_NOVA_PRO_V1_0,  # pyright: ignore[reportAny]
+        )
+
+        # SQS Queues
         ingestion_queue = sqs.Queue(
             self,
             "ingestion-queue",
@@ -69,22 +77,39 @@ class RagBuilderStack(cdk.Stack):
             removal_policy=cdk.RemovalPolicy.DESTROY,
         )
 
+        # Lambda Functions (1)
+        query_knowledge_base_function = PythonFunction(
+            self,
+            "query-knowledge-base-function",
+            memory=1024,
+            timeout=cdk.Duration.minutes(1),
+            environment={
+                "EMBEDDINGS_BUCKET": embeddings_bucket.bucket_name,
+                "EMBEDDINGS_MODEL": embeddings_model.model_arn.partition("/")[2],
+                "AGENT_MODEL": agent_model.model_arn.partition("/")[2],
+            },
+        )
+
+        # FastAPI APIs
         backend_api = FastApiLambdaFunction(
             self,
             "backend-api-fastapi",
             environment={
                 "INGESTION_QUEUE": ingestion_queue.queue_url,
-                "DELETION_QUEUE": deletion_queue.queue_url,
                 "INGESTION_HISTORY_TABLE": ingestion_history_table.table_name,
+                "DELETION_QUEUE": deletion_queue.queue_url,
+                "QUERY_FUNCTION": query_knowledge_base_function.function_name,
             },
         )
-        _ = ingestion_history_table.grant_read_write_data(backend_api.function)
         _ = ingestion_queue.grant_send_messages(backend_api.function)
+        _ = ingestion_history_table.grant_read_write_data(backend_api.function)
         _ = deletion_queue.grant_send_messages(backend_api.function)
+        _ = query_knowledge_base_function.grant_invoke(backend_api.function)
 
-        ingest_function = DockerPythonFunction(
+        # Lambda Functions (2)
+        ingest_document_function = DockerPythonFunction(
             self,
-            "ingest-function",
+            "ingest-document-function",
             memory=1024,
             timeout=cdk.Duration.minutes(5),
             environment={
@@ -93,25 +118,28 @@ class RagBuilderStack(cdk.Stack):
                 "BACKEND_API_URL": backend_api.apigw.url,
             },
         )
-        ingest_function.add_event_source(
+        ingest_document_function.add_event_source(
             lambda_events.SqsEventSource(ingestion_queue, batch_size=1)
         )
-        _ = embeddings_bucket.grant_read_write(ingest_function)
-        _ = ingestion_history_table.grant_read_write_data(ingest_function)
-        ingest_function.add_to_role_policy(
+        _ = embeddings_bucket.grant_read_write(ingest_document_function)
+        _ = ingestion_history_table.grant_read_write_data(ingest_document_function)
+        ingest_document_function.add_to_role_policy(
             iam.PolicyStatement(
                 actions=["bedrock:InvokeModel"], resources=[embeddings_model.model_arn]
             )
         )
 
-        delete_function = PythonFunction(
+        delete_document_function = PythonFunction(
             self,
-            "delete-function",
-            memory=1024,
+            "delete-document-function",
+            memory=256,
             timeout=cdk.Duration.minutes(1),
             environment={
                 "EMBEDDINGS_BUCKET": embeddings_bucket.bucket_name,
             },
         )
-        _ = embeddings_bucket.grant_read(delete_function)
-        _ = embeddings_bucket.grant_delete(delete_function)
+        delete_document_function.add_event_source(
+            lambda_events.SqsEventSource(deletion_queue, batch_size=1)
+        )
+        _ = embeddings_bucket.grant_read(delete_document_function)
+        _ = embeddings_bucket.grant_delete(delete_document_function)

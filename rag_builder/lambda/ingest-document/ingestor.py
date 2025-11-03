@@ -30,7 +30,7 @@ class LanceDbIngestor(ABC):
     def __enter__(self) -> Self:
         return self
 
-    def __exit__(self) -> None:
+    def __exit__(self, *_) -> None:
         self._http.close()
 
     @cached_property
@@ -70,7 +70,8 @@ class LanceDbIngestor(ABC):
             json={"status": "failed", "error_details": repr(e)},
         )
 
-    def ingest(self) -> None:
+    def ingest_document(self) -> None:
+        logger.info("Starting ingestion with ID '%s'", self.ingestion_id)
         self._mark_in_progress()
         try:
             documents = self._split_documents()
@@ -80,8 +81,12 @@ class LanceDbIngestor(ABC):
             )
         except Exception as e:
             self._mark_failed(e)
+            logger.exception("Ingestion with ID '%s' failed", self.ingestion_id)
         else:
             self._mark_completed()
+            logger.info(
+                "Sucessfully completed ingestion with ID '%s'", self.ingestion_id
+            )
 
 
 class PdfIngestor(LanceDbIngestor):

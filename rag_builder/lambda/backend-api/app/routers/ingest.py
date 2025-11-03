@@ -10,9 +10,11 @@ from fastapi import APIRouter, HTTPException, status
 from pydantic import UUID4, BaseModel, HttpUrl
 
 logger = logging.getLogger(__name__)
+logger.setLevel(logging.INFO)
 
 INGESTION_QUEUE = os.environ["INGESTION_QUEUE"]
 INGESTION_HISTORY_TABLE = os.environ["INGESTION_HISTORY_TABLE"]
+DELETION_QUEUE = os.environ["DELETION_QUEUE"]
 
 sqs = boto3.client("sqs")  # pyright: ignore[reportUnknownMemberType, reportUnknownVariableType]
 dynamodb = boto3.client("dynamodb")  # pyright: ignore[reportUnknownVariableType, reportUnknownMemberType]
@@ -60,6 +62,10 @@ class UpdateIngestionValues(BaseModel):
     started_at: datetime | None = None
     completed_at: datetime | None = None
     error_details: str | None = None
+
+
+class DeletionMessage(BaseModel):
+    ingestion_id: UUID4
 
 
 router = APIRouter(
@@ -143,7 +149,7 @@ async def update_ingestion(
 
 
 @router.delete("/{ingestion_id}")
-async def delete_ingestion(ingestion_id: str) -> None:
+async def delete_ingestion(ingestion_id: UUID4) -> None:
     try:
         ingestion_history_table.delete_item(  # pyright: ignore[reportUnknownMemberType]
             Key={"ingestion_id": ingestion_id},
@@ -155,4 +161,8 @@ async def delete_ingestion(ingestion_id: str) -> None:
             detail=f"Ingestion ID '{ingestion_id}' not found",
         )
 
-    # TODO: delete embeddings for the ingestion_id calling another Lambda function
+    message = DeletionMessage(ingestion_id=ingestion_id)
+    sqs.send_message(  # pyright: ignore[reportUnknownMemberType]
+        QueueUrl=DELETION_QUEUE,
+        MessageBody=message.model_dump_json(),
+    )

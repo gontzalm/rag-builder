@@ -7,6 +7,7 @@ from fastapi import APIRouter
 from pydantic import BaseModel
 
 logger = logging.getLogger(__name__)
+logger.setLevel(logging.INFO)
 
 
 QUERY_FUNCTION = os.environ["QUERY_FUNCTION"]
@@ -34,5 +35,5 @@ async def query_knowledge_base(query: str) -> QueryResponse:
     r = lambda_.invoke(  # pyright: ignore[reportUnknownMemberType, reportUnknownVariableType]
         FunctionName=QUERY_FUNCTION, Payload=json.dumps({"query": query})
     )
-    payload = json.loads(r["Payload"].read())  # pyright: ignore[reportAny, reportUnknownMemberType, reportUnknownArgumentType]
+    payload = json.loads(r["Payload"].read())["payload"]  # pyright: ignore[reportUnknownMemberType, reportAny, reportUnknownArgumentType]
     return QueryResponse(model_response=payload["model_response"])  # pyright: ignore[reportAny]

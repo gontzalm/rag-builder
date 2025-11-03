@@ -1,8 +1,9 @@
 [project]
-name = "delete"
+name = "delete-document"
 version = "0.1.0"
 requires-python = ">= 3.12"
 dependencies = [
     "aws-lambda-powertools>=3.22.0",
     "boto3>=1.40.60",
+    "langchain-community>=0.4.1",
 ]
