@@ -42,7 +42,7 @@ focusing on the asynchronous ingestion pattern.
 
 ### A. The Asynchronous Ingestion Flow
 
-- [ ] /ingest Endpoint:
+- [x] /ingest Endpoint:
   - [x] Implement the POST /ingest FastAPI endpoint to accept a source and url
         (e.g., a PDF link).
 
@@ -75,11 +75,10 @@ focusing on the asynchronous ingestion pattern.
 ### B. The Query Flow
 
 - [ ] /query Endpoint (API Handler Lambda):
-
-- [ ] Implement the POST /query FastAPI endpoint to accept a user_question.
+  - [ ] Implement the POST /query FastAPI endpoint to accept a user_question.
 
 - [ ] RAG Execution:
-  - [ ] Connect to the LanceDB vector store on S3.
+  - [x] Connect to the LanceDB vector store on S3.
 
   - [ ] Use the LanceDB index as a LangChain Retriever.
 

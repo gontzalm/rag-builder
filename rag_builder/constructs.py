@@ -11,6 +11,8 @@ from aws_cdk import aws_lambda as lambda_
 from constructs import Construct
 
 BASE_DIR = Path(__file__).parent
+PIP_CACHE_DIR = BASE_DIR.parent / ".cdk-pip-cache"
+PIP_CACHE_DIR.mkdir(exist_ok=True)
 
 
 def compile_uv_lock(lambda_path: Path) -> None:
@@ -33,59 +35,16 @@ def compile_uv_lock(lambda_path: Path) -> None:
         )
 
 
-class PythonFunction(lambda_.Function):
-    def __init__(
-        self,
-        scope: Construct,
-        id: str,
-        *,
-        runtime: lambda_.Runtime = lambda_.Runtime.PYTHON_3_13,  # pyright: ignore[reportAny]
-        memory: int = 128,
-        timeout: cdk.Duration | None = None,
-        environment: dict[str, str] | None,
-    ) -> None:
-        lambda_code = BASE_DIR / "lambda" / id.removesuffix("-function")
-
-        compile_uv_lock(lambda_code)
-
-        super().__init__(
-            scope,
-            id,
-            runtime=runtime,
-            architecture=lambda_.Architecture.ARM_64,  # pyright: ignore[reportAny]
-            memory_size=memory,
-            handler="function.handler",
-            code=lambda_.Code.from_asset(
-                str(lambda_code),
-                bundling=cdk.BundlingOptions(
-                    image=runtime.bundling_image,
-                    platform="linux/arm64",
-                    command=[
-                        "bash",
-                        "-c",
-                        " && ".join(
-                            [
-                                "pip install -r requirements.txt -t /asset-output",
-                                "rsync -a --exclude .venv --exclude __pycache__ . /asset-output",
-                            ]
-                        ),
-                    ],
-                ),
-            ),
-            timeout=timeout,
-            environment=environment,
-        )
-
-
 @final
-class DockerPythonFunction(lambda_.DockerImageFunction):
+class PythonFunction(Construct):
     _DOCKERFILE_TEMPLATE = Template(
         textwrap.dedent("""\
             FROM public.ecr.aws/lambda/python:${python_version}
 
-            COPY --exclude=.venv . ${LAMBDA_TASK_ROOT}
-
+            COPY requirements.txt ${LAMBDA_TASK_ROOT}
             RUN pip install -r requirements.txt
+
+            COPY --exclude=.venv --exclude=__pycache__  . ${LAMBDA_TASK_ROOT}
         """)
     )
 
@@ -94,36 +53,74 @@ class DockerPythonFunction(lambda_.DockerImageFunction):
         scope: Construct,
         id: str,
         *,
+        containerized: bool = False,
         runtime: lambda_.Runtime = lambda_.Runtime.PYTHON_3_13,  # pyright: ignore[reportAny]
         memory: int = 128,
         timeout: cdk.Duration | None = None,
-        environment: dict[str, str] | None = None,
+        environment: dict[str, str] | None,
     ) -> None:
+        super().__init__(scope, id)
+
         lambda_code = BASE_DIR / "lambda" / id.removesuffix("-function")
 
         compile_uv_lock(lambda_code)
 
-        # Create Dockerfile
-        dockerfile = lambda_code / "Dockerfile"
-        dockerfile_content = self._DOCKERFILE_TEMPLATE.safe_substitute(
-            {"python_version": runtime.name.removeprefix("python")}
-        )
-        _ = dockerfile.write_text(dockerfile_content)
+        if containerized:
+            dockerfile = lambda_code / "Dockerfile"
+            dockerfile_content = self._DOCKERFILE_TEMPLATE.safe_substitute(
+                {"python_version": runtime.name.removeprefix("python")}
+            )
+            _ = dockerfile.write_text(dockerfile_content)
 
-        docker_code = lambda_.DockerImageCode.from_image_asset(
-            str(lambda_code),
-            cmd=["function.handler"],
-        )
+            docker_code = lambda_.DockerImageCode.from_image_asset(
+                str(lambda_code),
+                cmd=["function.handler"],
+            )
 
-        super().__init__(
-            scope,
-            id,
-            code=docker_code,
-            architecture=lambda_.Architecture.ARM_64,  # pyright: ignore[reportAny]
-            memory_size=memory,
-            environment=environment,
-            timeout=timeout,
-        )
+            self.function = lambda_.DockerImageFunction(
+                scope,
+                f"{id}-docker-function",
+                code=docker_code,
+                architecture=lambda_.Architecture.ARM_64,  # pyright: ignore[reportAny]
+                memory_size=memory,
+                environment=environment,
+                timeout=timeout,
+            )
+        else:
+            self.function = lambda_.Function(
+                scope,
+                f"{id}-zip-function",
+                runtime=runtime,
+                architecture=lambda_.Architecture.ARM_64,  # pyright: ignore[reportAny]
+                memory_size=memory,
+                handler="function.handler",
+                code=lambda_.Code.from_asset(
+                    str(lambda_code),
+                    bundling=cdk.BundlingOptions(
+                        image=runtime.bundling_image,
+                        platform="linux/arm64",
+                        volumes=[
+                            cdk.DockerVolume(
+                                host_path=str(PIP_CACHE_DIR),
+                                container_path="/pip-cache",
+                            )
+                        ],
+                        environment={"PIP_CACHE_DIR": "/pip-cache"},
+                        command=[
+                            "bash",
+                            "-c",
+                            " && ".join(
+                                [
+                                    "pip install -r requirements.txt -t /asset-output",
+                                    "rsync -a --exclude .venv --exclude __pycache__ . /asset-output",
+                                ]
+                            ),
+                        ],
+                    ),
+                ),
+                timeout=timeout,
+                environment=environment,
+            )
 
 
 @final
@@ -132,7 +129,7 @@ class FastApiLambdaFunction(Construct):
         #!/bin/bash
         PATH=$PATH:$LAMBDA_TASK_ROOT/bin \\
             PYTHONPATH=$PYTHONPATH:/opt/python:$LAMBDA_RUNTIME_DIR
-            exec python -m uvicorn --port ${PORT} --root-path /prod app.main:app
+            exec python -m uvicorn --port ${AWS_LWA_PORT} --root-path /prod app.main:app
     """)
 
     def __init__(
@@ -144,6 +141,7 @@ class FastApiLambdaFunction(Construct):
         memory: int = 256,
         environment: dict[str, str] | None = None,
         cognito_authorizer_pool: cognito.UserPool | None = None,
+        cors_allow_origins: list[str] | None = None,
     ) -> None:
         super().__init__(scope, id)
 
@@ -170,6 +168,13 @@ class FastApiLambdaFunction(Construct):
                 bundling=cdk.BundlingOptions(
                     image=runtime.bundling_image,
                     platform="linux/arm64",
+                    volumes=[
+                        cdk.DockerVolume(
+                            host_path=str(PIP_CACHE_DIR),
+                            container_path="/pip-cache",
+                        )
+                    ],
+                    environment={"PIP_CACHE_DIR": "/pip-cache"},
                     command=[
                         "bash",
                         "-c",
@@ -177,7 +182,7 @@ class FastApiLambdaFunction(Construct):
                             [
                                 f"echo -e '{self._RUN_SH_CONTENT}' > /asset-output/run.sh",
                                 "chmod +x /asset-output/run.sh",
-                                "pip install --platform manylinux2014_aarch64 --only-binary=:all: -r requirements.txt -t /asset-output",
+                                "pip install -r requirements.txt -t /asset-output",
                                 "rsync -a --exclude .venv --exclude __pycache__ . /asset-output",
                             ]
                         ),
@@ -187,7 +192,10 @@ class FastApiLambdaFunction(Construct):
             timeout=cdk.Duration.seconds(30),
             environment={
                 "AWS_LAMBDA_EXEC_WRAPPER": "/opt/bootstrap",
-                "PORT": "8080",
+                "AWS_LWA_PORT": "8080",
+                "CORS_ALLOW_ORIGINS": ",".join(
+                    ["http://127.0.0.1:8000"] + (cors_allow_origins or [])
+                ),
                 **(environment or {}),
             },
         )

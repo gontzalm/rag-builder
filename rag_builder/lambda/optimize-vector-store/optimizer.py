@@ -10,19 +10,15 @@ logger.setLevel(logging.INFO)
 
 
 @final
-class LanceDbDeleter:
+class LanceDbOptimizer:
     _VECTOR_STORE_BUCKET: str = os.environ["VECTOR_STORE_BUCKET"]
-
-    def __init__(self, document_id: str) -> None:
-        self.document_id = document_id
 
     @cached_property
     def _vector_store(self) -> lancedb.DBConnection:
         logger.info("Connecting to LanceDB vector store")
         return lancedb.connect(uri=f"s3://{self._VECTOR_STORE_BUCKET}")
 
-    def delete_document(self) -> None:
-        logger.info("Deleting document ID '%s'")
-        _ = self._vector_store.open_table("vectorstore").delete(
-            f"id like '{self.document_id}%'"
-        )
+    def optimize(self) -> None:
+        logger.info("Optimizing LanceDB vector store")
+        logger.info("Available tables: '%s'", self._vector_store.table_names())
+        self._vector_store.open_table("vectorstore").optimize()

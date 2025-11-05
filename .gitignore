@@ -3,5 +3,9 @@ __pycache__
 .venv
 
 # cdk
+.cdk-pip-cache
 .cdk_staging
 cdk.out
+
+# other
+.env

@@ -17,14 +17,14 @@ from langchain_text_splitters import RecursiveCharacterTextSplitter
 logger = logging.getLogger(__name__)
 
 
-class LanceDbIngestor(ABC):
-    _EMBEDDINGS_BUCKET: str = os.environ["EMBEDDINGS_BUCKET"]
+class LanceDbLoader(ABC):
+    _VECTOR_STORE_BUCKET: str = os.environ["VECTOR_STORE_BUCKET"]
     _EMBEDDINGS_MODEL: str = os.environ["EMBEDDINGS_MODEL"]
     _BACKEND_API_URL: str = os.environ["BACKEND_API_URL"]
 
-    def __init__(self, ingestion_id: str, url: str) -> None:
+    def __init__(self, load_id: str, url: str) -> None:
         self._http: Client = Client(base_url=self._BACKEND_API_URL)
-        self.ingestion_id: str = ingestion_id
+        self.load_id: str = load_id
         self.url: str = url
 
     def __enter__(self) -> Self:
@@ -37,7 +37,7 @@ class LanceDbIngestor(ABC):
     def _vector_store(self) -> LanceDB:
         logger.info("Connecting to LanceDB vector store")
         return LanceDB(
-            uri=f"s3://{self._EMBEDDINGS_BUCKET}",
+            uri=f"s3://{self._VECTOR_STORE_BUCKET}",
             embedding=BedrockEmbeddings(model_id=self._EMBEDDINGS_MODEL),
         )
 
@@ -54,42 +54,44 @@ class LanceDbIngestor(ABC):
 
     def _mark_in_progress(self) -> None:
         _ = self._http.patch(
-            f"/ingest/{self.ingestion_id}",
+            f"/document/load/{self.load_id}",
             json={"status": "in_progress", "started_at": str(datetime.now(tz=UTC))},
         )
 
     def _mark_completed(self) -> None:
         _ = self._http.patch(
-            f"/ingest/{self.ingestion_id}",
+            f"/document/load/{self.load_id}",
             json={"status": "completed", "completed_at": str(datetime.now(tz=UTC))},
         )
 
     def _mark_failed(self, e: Exception) -> None:
         _ = self._http.patch(
-            f"/ingest/{self.ingestion_id}",
+            f"/document/load/{self.load_id}",
             json={"status": "failed", "error_details": repr(e)},
         )
 
-    def ingest_document(self) -> None:
-        logger.info("Starting ingestion with ID '%s'", self.ingestion_id)
+    def _add_document(self) -> None:
+        _ = self._http.post("/document", json={"title": "test", "url": self.url})
+
+    def load_document(self) -> None:
+        logger.info("Starting document load ID '%s'", self.load_id)
         self._mark_in_progress()
         try:
             documents = self._split_documents()
             _ = self._vector_store.add_documents(
                 documents,
-                ids=[f"{self.ingestion_id}-{i:04d}" for i in range(len(documents))],
+                ids=[f"{self.load_id}-{i:04d}" for i in range(len(documents))],
             )
         except Exception as e:
             self._mark_failed(e)
-            logger.exception("Ingestion with ID '%s' failed", self.ingestion_id)
+            logger.exception("Document load ID '%s' failed", self.load_id)
         else:
             self._mark_completed()
-            logger.info(
-                "Sucessfully completed ingestion with ID '%s'", self.ingestion_id
-            )
+            self._add_document()
+            logger.info("Sucessfully completed document load ID '%s'", self.load_id)
 
 
-class PdfIngestor(LanceDbIngestor):
+class PdfLoader(LanceDbLoader):
     @cached_property
     @override
     def _loader(self) -> PyPDFLoader:

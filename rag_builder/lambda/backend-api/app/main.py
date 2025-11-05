@@ -1,10 +1,23 @@
-from fastapi import FastAPI
+import logging
+import os
 
-from app.routers import ingest, query
+from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
+
+from app.routers import document, query
+
+logging.basicConfig(level=logging.INFO)
 
 app = FastAPI()
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=os.environ["CORS_ALLOW_ORIGINS"].split(","),
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
-app.include_router(ingest.router)
+app.include_router(document.router)
 app.include_router(query.router)
 
 

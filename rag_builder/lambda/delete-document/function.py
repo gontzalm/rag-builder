@@ -10,8 +10,8 @@ logger = logging.getLogger(__name__)
 logger.setLevel(logging.INFO)
 
 
-class DeletionMessage(TypedDict):
-    ingestion_id: str
+class DocumentDeletionMessage(TypedDict):
+    document_id: str
 
 
 def handler(event: dict[str, Any], _) -> None:  # pyright: ignore[reportExplicitAny]
@@ -19,10 +19,10 @@ def handler(event: dict[str, Any], _) -> None:  # pyright: ignore[reportExplicit
     record = next(sqs_event.records)
     logger.info("Processing SQS message ID '%s'", record.message_id)
 
-    message_data: DeletionMessage = json.loads(record.body)  # pyright: ignore[reportAny]
+    message_data: DocumentDeletionMessage = json.loads(record.body)  # pyright: ignore[reportAny]
 
-    ingestion_id = message_data["ingestion_id"]
+    document_id = message_data["document_id"]
 
-    logger.info("Successfully parsed message for Ingestion ID '%s'", ingestion_id)
+    logger.info("Successfully parsed message for document ID '%s'", document_id)
 
-    LanceDbDeleter(ingestion_id).delete_document()
+    LanceDbDeleter(document_id).delete_document()
