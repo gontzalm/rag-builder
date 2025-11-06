@@ -22,7 +22,8 @@ class LanceDbDeleter:
         return lancedb.connect(uri=f"s3://{self._VECTOR_STORE_BUCKET}")
 
     def delete_document(self) -> None:
-        logger.info("Deleting document ID '%s'")
+        logger.info("Deleting document ID '%s'", self.document_id)
         _ = self._vector_store.open_table("vectorstore").delete(
             f"id like '{self.document_id}%'"
         )
+        logger.info("Sucessfully deleted document ID '%s'", self.document_id)

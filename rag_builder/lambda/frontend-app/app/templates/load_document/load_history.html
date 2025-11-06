@@ -1,0 +1,40 @@
+<nav aria-label="breadcrumb">
+  <ul>
+    <li><a href="#">📥 Load Document</a></li>
+    <li>📜 Load History</li>
+  </ul>
+</nav>
+
+{% set status_colors = {
+  'pending': 'grey',
+  'in_progress': 'yellow',
+  'completed': 'green',
+  'failed': 'red'
+} %}
+
+<table role="grid">
+  <thead>
+    <tr>
+      <th>Load ID</th>
+      <th>URL</th>
+      <th>Source</th>
+      <th>Status</th>
+      <th>Started At</th>
+      <th>Completed At</th>
+      <th>Error Details</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for load in load_history %}
+    <tr>
+      <td>{{ load.load_id }}</td>
+      <td><a href="{{ load.spec.url }}" target="_blank">{{ load.spec.url }}</a></td>
+      <td>{{ load.spec.source }}</td>
+      <td style="color: {{ status_colors.get(load.status, 'inherit') }};">{{ load.status }}</td>
+      <td>{{ load.started_at.split('.')[0].replace('T', ' ') if load.started_at else '' }}</td>
+      <td>{{ load.completed_at.split('.')[0].replace('T', ' ') if load.completed_at else '' }}</td>
+      <td>{{ load.error_details }}</td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>

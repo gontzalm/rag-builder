@@ -25,7 +25,7 @@ router = APIRouter(
 )
 
 
-@router.get("/")
+@router.get("")
 async def query_knowledge_base(query: str) -> QueryResponse:
     logger.info(
         "Invoking lambda function '%s' with user query '%s'",

@@ -1,18 +1,25 @@
 import subprocess
 import textwrap
+from collections.abc import Sequence
 from pathlib import Path
 from string import Template
-from typing import final
+from typing import Literal, TypedDict, final
 
 import aws_cdk as cdk
 import aws_cdk.aws_cognito as cognito
 from aws_cdk import aws_apigateway as apigw
 from aws_cdk import aws_lambda as lambda_
+from aws_cdk.aws_iam import IGrantable
 from constructs import Construct
 
 BASE_DIR = Path(__file__).parent
 PIP_CACHE_DIR = BASE_DIR.parent / ".cdk-pip-cache"
 PIP_CACHE_DIR.mkdir(exist_ok=True)
+
+
+class Endpoint(TypedDict):
+    path: str
+    methods: Sequence[Literal["GET", "POST", "PUT", "PATCH", "DELETE"]]
 
 
 def compile_uv_lock(lambda_path: Path) -> None:
@@ -141,6 +148,7 @@ class FastApiLambdaFunction(Construct):
         memory: int = 256,
         environment: dict[str, str] | None = None,
         cognito_authorizer_pool: cognito.UserPool | None = None,
+        iam_authorized_endpoints: list[Endpoint] | None = None,
         cors_allow_origins: list[str] | None = None,
     ) -> None:
         super().__init__(scope, id)
@@ -200,10 +208,36 @@ class FastApiLambdaFunction(Construct):
             },
         )
 
-        self.apigw = apigw.LambdaRestApi(
+        lambda_integration = apigw.LambdaIntegration(self.function)  # pyright: ignore[reportArgumentType]
+
+        self.apigw = apigw.RestApi(
             scope,
             f"{id}-apigw",
-            handler=self.function,  # pyright: ignore[reportArgumentType]
+            default_cors_preflight_options=apigw.CorsOptions(
+                allow_origins=cors_allow_origins,
+                allow_credentials=True,
+            )
+            if cors_allow_origins is not None
+            else None,
+        )
+
+        self.iam_authorized_methods: list[apigw.Method] = []
+
+        if iam_authorized_endpoints is not None:
+            for endpoint in iam_authorized_endpoints:
+                resource = self.apigw.root.resource_for_path(endpoint["path"])
+
+                for method in endpoint["methods"]:
+                    self.iam_authorized_methods.append(
+                        resource.add_method(
+                            method,
+                            lambda_integration,
+                            authorization_type=apigw.AuthorizationType.IAM,
+                        )
+                    )
+
+        _ = self.apigw.root.add_proxy(
+            default_integration=lambda_integration,
             default_method_options=apigw.MethodOptions(
                 authorizer=apigw.CognitoUserPoolsAuthorizer(
                     self,
@@ -214,3 +248,7 @@ class FastApiLambdaFunction(Construct):
             if cognito_authorizer_pool is not None
             else None,
         )
+
+    def grant_execute_on_iam_methods(self, grantee: IGrantable) -> None:
+        for method in self.iam_authorized_methods:
+            _ = method.grant_execute(grantee)

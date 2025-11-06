@@ -74,40 +74,40 @@ focusing on the asynchronous ingestion pattern.
 
 ### B. The Query Flow
 
-- [ ] /query Endpoint (API Handler Lambda):
-  - [ ] Implement the POST /query FastAPI endpoint to accept a user_question.
+- [x] /query Endpoint (API Handler Lambda):
+  - [x] Implement the POST /query FastAPI endpoint to accept a user_question.
 
-- [ ] RAG Execution:
+- [x] RAG Execution:
   - [x] Connect to the LanceDB vector store on S3.
 
-  - [ ] Use the LanceDB index as a LangChain Retriever.
+  - [x] Use the LanceDB index as a LangChain Retriever.
 
-  - [ ] Initialize an Amazon Bedrock LLM
+  - [x] Initialize an Amazon Bedrock LLM
 
-  - [ ] Execute the basic RAG Chain (Retriever + LLM) to get the final answer.
+  - [x] Execute the basic RAG Chain (Retriever + LLM) to get the final answer.
 
-  - [ ] Return the LLM's answer to the user.
+  - [x] Return the LLM's answer to the user.
 
 ## Phase 3: Frontend & User Experience (FastAPI/Jinja2)
 
 This phase ensures a polished, secure demonstration that a client can actually
 use.
 
-- [ ] Authentication:
-  - [ ] Integrate Cognito User Pool with the FastAPI frontend (e.g., using a
+- [x] Authentication:
+  - [x] Integrate Cognito User Pool with the FastAPI frontend (e.g., using a
         library to validate JWT tokens).
 
   - [x] Secure all backend endpoints to require a valid user token.
 
-- [ ] Frontend Pages (Jinja2 Templates):
-  - [ ] Home/Login Page: Simple, branded login using the Cognito hosted UI or a
+- [x] Frontend Pages (Jinja2 Templates):
+  - [x] Home/Login Page: Simple, branded login using the Cognito hosted UI or a
         custom form.
 
-  - [ ] Ingest Page: Form to submit a source and url and display the returned
+  - [x] Ingest Page: Form to submit a source and url and display the returned
         `ingestion_id`.
 
-  - [ ] Query Page: Simple input field to submit a question, displaying the RAG
+  - [x] Query Page: Simple input field to submit a question, displaying the RAG
         answer.
 
-  - [ ] Status Page: Implement the GET /ingest FastAPI endpoint to query
+  - [x] Status Page: Implement the GET /ingest FastAPI endpoint to query
         DynamoDB and display the ingestion status list to the user.

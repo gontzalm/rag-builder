@@ -12,6 +12,7 @@ from aws_cdk import aws_sqs as sqs
 from constructs import Construct
 
 from rag_builder.constructs import (
+    Endpoint,
     FastApiLambdaFunction,
     PythonFunction,
 )
@@ -117,6 +118,10 @@ class RagBuilderStack(cdk.Stack):
         )
 
         # Backend API
+        IAM_AUTHORIZED_ENDPOINTS: list[Endpoint] = [
+            {"path": "/document/load/{id}", "methods": ["PATCH"]},
+            {"path": "/document", "methods": ["POST"]},
+        ]
         backend_api = FastApiLambdaFunction(
             self,
             "backend-api-fastapi",
@@ -127,6 +132,7 @@ class RagBuilderStack(cdk.Stack):
                 "DOCUMENT_DELETION_QUEUE": document_deletion_queue.queue_url,
             },
             cognito_authorizer_pool=user_pool,
+            iam_authorized_endpoints=IAM_AUTHORIZED_ENDPOINTS,
         )
         _ = document_table.grant_read_write_data(backend_api.function)
         _ = document_load_history_table.grant_read_write_data(backend_api.function)
@@ -165,7 +171,7 @@ class RagBuilderStack(cdk.Stack):
                     "http://127.0.0.1:8000/auth/callback",
                     f"{frontend_app.apigw.url}/auth/callback",
                 ],
-                logout_urls=[frontend_app.apigw.url],
+                logout_urls=["http://127.0.0.1:8000", frontend_app.apigw.url],
             ),
             generate_secret=True,
         )
@@ -204,6 +210,22 @@ class RagBuilderStack(cdk.Stack):
                 actions=["bedrock:InvokeModel"], resources=[embeddings_model.model_arn]
             )
         )
+        backend_api.grant_execute_on_iam_methods(load_document_function.function)
+
+        # for endpoint in IAM_AUTHORIZED_ENDPOINTS:
+        #     load_document_function.function.add_to_role_policy(
+        #         iam.PolicyStatement(
+        #             actions=["execute-api:Invoke"],
+        #             resources=[
+        #                 backend_api.apigw.arn_for_execute_api(
+        #                     method=method,
+        #                     path=endpoint["path"],
+        #                     stage=backend_api.apigw.deployment_stage.stage_name,
+        #                 )
+        #                 for method in endpoint["methods"]
+        #             ],
+        #         )
+        #     )
         load_document_function.function.add_event_source(
             lambda_events.SqsEventSource(document_load_queue, batch_size=1)
         )

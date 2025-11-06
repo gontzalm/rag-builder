@@ -22,13 +22,11 @@ def handler(payload: Request, _) -> Response:
     logger.info("Querying knowledge base with user query '%s'", payload["query"])
 
     user_query = payload["query"]
-    agent_response = (  # pyright: ignore[reportAny]
-        rag_agent.invoke({"messages": [HumanMessage(user_query)]})[  # pyright: ignore[reportUnknownMemberType]
-            "messages"
-        ][-1]
-    )
+    agent_response = rag_agent.invoke(  # pyright: ignore[reportUnknownMemberType, reportAny]
+        {"messages": [HumanMessage(user_query)]}
+    )["messages"][-1].content_blocks[0]["text"]
 
     return {
         "status_code": 200,
-        "payload": {"agent_response": agent_response.pretty_repr()},  # pyright: ignore[reportAny]
+        "payload": {"agent_response": agent_response},
     }

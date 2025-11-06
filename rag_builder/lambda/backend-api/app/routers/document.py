@@ -211,7 +211,7 @@ async def get_documents(next_token: str | None = None) -> GetDocumentsResponse:
         )
 
 
-@router.delete("/{document_id}", status_code=status.HTTP_201_CREATED)
+@router.delete("/{document_id}", status_code=status.HTTP_204_NO_CONTENT)
 async def delete_document(document_id: str) -> None:
     try:
         document_table.delete_item(  # pyright: ignore[reportUnknownMemberType]

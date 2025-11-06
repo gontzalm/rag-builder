@@ -1,0 +1,29 @@
+<nav aria-label="breadcrumb">
+  <ul>
+    <li><a href="#">📚 Knowledge Base</a></li>
+    <li>❓ Query</li>
+  </ul>
+</nav>
+
+<form hx-get="/frontend/knowledge-base/query/search" hx-target="#response">
+  <div role="search">
+    <input
+      type="search"
+      name="query"
+      placeholder="Enter your query"
+      aria-label="Query"
+    />
+    <button type="submit" aria-busy="false">Query</button>
+  </div>
+</form>
+
+<div id="response"></div>
+
+<script>
+  document.querySelector("form").addEventListener("htmx:beforeRequest", function (evt) {
+    evt.detail.elt.querySelector("button").setAttribute("aria-busy", "true");
+  });
+  document.querySelector("form").addEventListener("htmx:afterRequest", function (evt) {
+    evt.detail.elt.querySelector("button").setAttribute("aria-busy", "false");
+  });
+</script>

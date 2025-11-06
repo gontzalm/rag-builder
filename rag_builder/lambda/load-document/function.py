@@ -6,7 +6,7 @@ from aws_lambda_powertools.utilities.data_classes.sqs_event import SQSEvent
 
 from loader import PdfLoader
 
-logger = logging.getLogger(__name__)
+logger = logging.getLogger()
 logger.setLevel(logging.INFO)
 
 
@@ -35,7 +35,7 @@ def handler(event: dict[str, Any], _) -> None:  # pyright: ignore[reportExplicit
 
     match load_spec["source"]:
         case "pdf":
-            with PdfLoader(load_id, load_spec["url"]) as ingestor:
-                ingestor.load_document()
+            with PdfLoader(load_id, load_spec["url"]) as loader:
+                loader.load_document()
         case _:
             raise NotImplementedError

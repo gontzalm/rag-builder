@@ -14,7 +14,9 @@ from langchain_core.document_loaders import BaseLoader
 from langchain_core.documents import Document
 from langchain_text_splitters import RecursiveCharacterTextSplitter
 
-logger = logging.getLogger(__name__)
+from auth import AwsBotoAuth
+
+logger = logging.getLogger()
 
 
 class LanceDbLoader(ABC):
@@ -23,7 +25,7 @@ class LanceDbLoader(ABC):
     _BACKEND_API_URL: str = os.environ["BACKEND_API_URL"]
 
     def __init__(self, load_id: str, url: str) -> None:
-        self._http: Client = Client(base_url=self._BACKEND_API_URL)
+        self._http: Client = Client(base_url=self._BACKEND_API_URL, auth=AwsBotoAuth())
         self.load_id: str = load_id
         self.url: str = url
 
