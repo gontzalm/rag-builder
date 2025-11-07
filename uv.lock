@@ -40,38 +40,22 @@ wheels = [
 ]
 
 [[package]]
-name = "aws-cdk-aws-lambda-python-alpha"
-version = "2.220.0a0"
-source = { registry = "https://pypi.org/simple" }
-dependencies = [
-    { name = "aws-cdk-lib" },
-    { name = "constructs" },
-    { name = "jsii" },
-    { name = "publication" },
-    { name = "typeguard" },
-]
-sdist = { url = "https://files.pythonhosted.org/packages/1e/61/edb82a41f5f32d5882822fddf2120517774b4b616ee15bf3ac87286701aa/aws_cdk_aws_lambda_python_alpha-2.220.0a0.tar.gz", hash = "sha256:7ca48223a49c9c1428c2a1adfe602e591d24b5cb6580930319e76190d8789379", size = 90266, upload-time = "2025-10-14T13:58:01.443Z" }
-wheels = [
-    { url = "https://files.pythonhosted.org/packages/26/bb/26de34170d97d67077ac438091829b4107bdd7b998d6b5f23c3335ecae81/aws_cdk_aws_lambda_python_alpha-2.220.0a0-py3-none-any.whl", hash = "sha256:694bc21e56e47ed133bfc5fc6f454270789cdad42b8128de9b4ed3a3deb2260b", size = 89134, upload-time = "2025-10-14T13:57:23.665Z" },
-]
-
-[[package]]
 name = "aws-cdk-cloud-assembly-schema"
-version = "48.15.0"
+version = "48.18.0"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "jsii" },
     { name = "publication" },
     { name = "typeguard" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/2e/ee/047d8a24202efdb4f2e81fbe335c77f050480735459c649e03dde7cfc711/aws_cdk_cloud_assembly_schema-48.15.0.tar.gz", hash = "sha256:5be69f0018e516a0fee3006197b33a25d2777f44d9cb9574f56e7c2959b9906c", size = 208057, upload-time = "2025-10-15T10:38:24.439Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/0c/67/2436a57070ac8a9748d41683cc4675949dba574cdbdf66886b5679069126/aws_cdk_cloud_assembly_schema-48.18.0.tar.gz", hash = "sha256:dc8d1bbe09bca45d675fa7d5c59fd7c073ed86865fc97dc985c6a4caf1016b42", size = 208092, upload-time = "2025-11-06T20:25:52.678Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/8e/25/f0f1a1e6b3decd8ea1c74c2152a606d31327855b89cc54ebb8b042368d8c/aws_cdk_cloud_assembly_schema-48.15.0-py3-none-any.whl", hash = "sha256:62a371d04c0b7a227a1aa91edd47899d59198ba25b062c3543c5661b5049a4fd", size = 207589, upload-time = "2025-10-15T10:38:22.132Z" },
+    { url = "https://files.pythonhosted.org/packages/9f/27/c3249cc97d6bfd184a9a43d55f3482e2210456c6a99a9c87ca6b781b39cb/aws_cdk_cloud_assembly_schema-48.18.0-py3-none-any.whl", hash = "sha256:12b193fde580828d8c4909cfa62e1f83977fe20d0aa448c7e7e353f8e21e1b68", size = 207667, upload-time = "2025-11-06T20:25:50.468Z" },
 ]
 
 [[package]]
 name = "aws-cdk-lib"
-version = "2.220.0"
+version = "2.222.0"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "aws-cdk-asset-awscli-v1" },
@@ -82,36 +66,36 @@ dependencies = [
     { name = "publication" },
     { name = "typeguard" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/70/fa/22bd5a46f672a2591f0701522477cf143f9f5ca255268b39b9cc101fe5d2/aws_cdk_lib-2.220.0.tar.gz", hash = "sha256:0c5242dd740e5c0f31cf7f65f6f7b4fecada0d5e4054570944c5308230d797ae", size = 44854427, upload-time = "2025-10-14T13:58:13.477Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/03/97/55f6e36700452b39c4f5e36426fd48cb28fec1b586da3486a2366ccc8ec2/aws_cdk_lib-2.222.0.tar.gz", hash = "sha256:29ac25f0e0aba377beff611ee1d4a087e6fce48476c1409ca7c6e6682ffbeab3", size = 45057907, upload-time = "2025-11-04T10:49:28.864Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/96/01/00d6a7fde042b7bf447f13a0cc18ee355949b278dfb0690cab9f87dd47e8/aws_cdk_lib-2.220.0-py3-none-any.whl", hash = "sha256:2f69bae74529142a8decb3d1591cf54c8ed9fc033e503a09bfbdd534509a6785", size = 45113171, upload-time = "2025-10-14T13:57:43.205Z" },
+    { url = "https://files.pythonhosted.org/packages/46/c1/123f14ac55be91df6f77d3ab62dcc5b05ebcfa5d2bee3dc2cb4630c15954/aws_cdk_lib-2.222.0-py3-none-any.whl", hash = "sha256:f6df71cd13d677cfcd6ed397d7cf838fdfebe85a020c10b72768f6bfb296aeb2", size = 45324019, upload-time = "2025-11-04T10:48:51.858Z" },
 ]
 
 [[package]]
 name = "cattrs"
-version = "25.2.0"
+version = "25.3.0"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "attrs" },
     { name = "typing-extensions" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/e3/42/988b3a667967e9d2d32346e7ed7edee540ef1cee829b53ef80aa8d4a0222/cattrs-25.2.0.tar.gz", hash = "sha256:f46c918e955db0177be6aa559068390f71988e877c603ae2e56c71827165cc06", size = 506531, upload-time = "2025-08-31T20:41:59.301Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/6e/00/2432bb2d445b39b5407f0a90e01b9a271475eea7caf913d7a86bcb956385/cattrs-25.3.0.tar.gz", hash = "sha256:1ac88d9e5eda10436c4517e390a4142d88638fe682c436c93db7ce4a277b884a", size = 509321, upload-time = "2025-10-07T12:26:08.737Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/20/a5/b3771ac30b590026b9d721187110194ade05bfbea3d98b423a9cafd80959/cattrs-25.2.0-py3-none-any.whl", hash = "sha256:539d7eedee7d2f0706e4e109182ad096d608ba84633c32c75ef3458f1d11e8f1", size = 70040, upload-time = "2025-08-31T20:41:57.543Z" },
+    { url = "https://files.pythonhosted.org/packages/d8/2b/a40e1488fdfa02d3f9a653a61a5935ea08b3c2225ee818db6a76c7ba9695/cattrs-25.3.0-py3-none-any.whl", hash = "sha256:9896e84e0a5bf723bc7b4b68f4481785367ce07a8a02e7e9ee6eb2819bc306ff", size = 70738, upload-time = "2025-10-07T12:26:06.603Z" },
 ]
 
 [[package]]
 name = "constructs"
-version = "10.4.2"
+version = "10.4.3"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "jsii" },
     { name = "publication" },
     { name = "typeguard" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/46/84/f608a0a71a05a476b2f1761ab8f3f776677d39f7996ecf1092a1ce741a7c/constructs-10.4.2.tar.gz", hash = "sha256:ce54724360fffe10bab27d8a081844eb81f5ace7d7c62c84b719c49f164d5307", size = 65434, upload-time = "2024-10-14T12:58:02.822Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/7a/e1/48a63ea310ac999005368aa72f52be520210526002f3f0cfcb7aaa9477ee/constructs-10.4.3.tar.gz", hash = "sha256:bfe3657b0acb62af7aa1fda9a7e338ae5cae84ddf8f84f71125a2a3800d52ea0", size = 64486, upload-time = "2025-11-06T15:48:25.039Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/f2/d9/c5e7458f323bf063a9a54200742f2494e2ce3c7c6873e0ff80f88033c75f/constructs-10.4.2-py3-none-any.whl", hash = "sha256:1f0f59b004edebfde0f826340698b8c34611f57848139b7954904c61645f13c1", size = 63509, upload-time = "2024-10-14T12:57:59.828Z" },
+    { url = "https://files.pythonhosted.org/packages/97/94/a5ce72d63276d3baa47592d3d12afc33f9e5d8f4ddd7bb2ec0012255037f/constructs-10.4.3-py3-none-any.whl", hash = "sha256:43bbefa1ac1c044577d0b1a30648fe5b49557b8b95de2648186f6b909febf7f9", size = 62659, upload-time = "2025-11-06T15:48:21.966Z" },
 ]
 
 [[package]]
@@ -125,7 +109,7 @@ wheels = [
 
 [[package]]
 name = "jsii"
-version = "1.116.0"
+version = "1.118.0"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "attrs" },
@@ -136,9 +120,9 @@ dependencies = [
     { name = "typeguard" },
     { name = "typing-extensions" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/b8/8a/f4a1a5a5610214f3663dec99a9d4d916f3dc23f9a873e441668c5e098e43/jsii-1.116.0.tar.gz", hash = "sha256:b160b6d784a15d971b3318b66ed5d71e8a6a13422ef335b48c7f88a168e74354", size = 625506, upload-time = "2025-10-14T11:54:04.595Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/64/3f/91efc4c4d4b8e03aac7a21f6779592a74a67cddb4594737f6a9e859c842e/jsii-1.118.0.tar.gz", hash = "sha256:711131f84a9e968e12b8a09449c734907ca53faa51bf5b85685976dff9faf554", size = 625560, upload-time = "2025-10-29T09:56:05.26Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/4d/09/a14a5da08622cc6c925abf3722ceb0e61d6ec3eae29963e6b0a6dd3acaf1/jsii-1.116.0-py3-none-any.whl", hash = "sha256:e2874d29a0c77540f76114ad331eeb8b41d7165fb1af6fe331a5d2d62a2250d6", size = 601723, upload-time = "2025-10-14T11:54:03.056Z" },
+    { url = "https://files.pythonhosted.org/packages/98/24/222440ffcca93995650e7e08215df4d3313435455288e77e0d503713b86a/jsii-1.118.0-py3-none-any.whl", hash = "sha256:2f772d423ccf107193ba39a7ade7e43e6b5a063cad734009d1b4b0f80c5e7456", size = 601789, upload-time = "2025-10-29T09:56:03.984Z" },
 ]
 
 [[package]]
@@ -167,14 +151,12 @@ name = "rag-builder"
 version = "0.1.0"
 source = { virtual = "." }
 dependencies = [
-    { name = "aws-cdk-aws-lambda-python-alpha" },
     { name = "aws-cdk-lib" },
     { name = "constructs" },
 ]
 
 [package.metadata]
 requires-dist = [
-    { name = "aws-cdk-aws-lambda-python-alpha", specifier = ">=2.220.0a0" },
     { name = "aws-cdk-lib", specifier = ">=2.220.0" },
     { name = "constructs", specifier = ">=10.4.2" },
 ]
@@ -190,11 +172,14 @@ wheels = [
 
 [[package]]
 name = "typeguard"
-version = "2.13.3"
+version = "4.2.1"
 source = { registry = "https://pypi.org/simple" }
-sdist = { url = "https://files.pythonhosted.org/packages/3a/38/c61bfcf62a7b572b5e9363a802ff92559cb427ee963048e1442e3aef7490/typeguard-2.13.3.tar.gz", hash = "sha256:00edaa8da3a133674796cf5ea87d9f4b4c367d77476e185e80251cc13dfbb8c4", size = 40604, upload-time = "2021-12-10T21:09:39.158Z" }
+dependencies = [
+    { name = "typing-extensions", marker = "python_full_version < '3.13'" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/6e/0e/96ec359939521f8c3e6c7b69526afab96fafe0520b5e1b890e061a66abc9/typeguard-4.2.1.tar.gz", hash = "sha256:c556a1b95948230510070ca53fa0341fb0964611bd05d598d87fb52115d65fee", size = 71292, upload-time = "2024-03-24T08:06:18.233Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/9a/bb/d43e5c75054e53efce310e79d63df0ac3f25e34c926be5dffb7d283fb2a8/typeguard-2.13.3-py3-none-any.whl", hash = "sha256:5e3e3be01e887e7eafae5af63d1f36c849aaa94e3a0112097312aabfa16284f1", size = 17605, upload-time = "2021-12-10T21:09:37.844Z" },
+    { url = "https://files.pythonhosted.org/packages/d9/59/e02336eb478ccdfc9bb0d4c27ce04a4260cd8b45aa04f6b00bcfdbb66a2a/typeguard-4.2.1-py3-none-any.whl", hash = "sha256:7da3bd46e61f03e0852f8d251dcbdc2a336aa495d7daff01e092b55327796eb8", size = 34634, upload-time = "2024-03-24T08:06:15.936Z" },
 ]
 
 [[package]]
