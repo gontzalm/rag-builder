@@ -1,0 +1,21 @@
+{% extends "partial_base.html" %}
+
+{% block content %}
+{% for document in documents %}
+<tr>
+  <td>{{ document.title }}</td>
+  <td><a href="{{ document.url }}" target="_blank">{{ document.url }}</a></td>
+  <td>
+    <button
+      data-modal-trigger="confirmation-modal"
+      data-modal-title="Delete Document"
+      data-modal-body="Are you sure you want to delete <strong>{{ document.title }}</strong>?"
+      modal-hx-delete="/frontend/knowledge-base/available-documents/{{ document.document_id }}"
+      modal-hx-target="#content"
+    >
+      🗑️
+    </button>
+  </td>
+</tr>
+{% endfor %}
+{% endblock %}

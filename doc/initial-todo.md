@@ -1,4 +1,4 @@
-# rag-builder
+# Initial TODO
 
 ## Phase 1: Infrastructure as Code (AWS CDK Deployment)
 

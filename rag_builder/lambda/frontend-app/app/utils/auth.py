@@ -62,7 +62,7 @@ def get_app_secret_key() -> str:
 
 
 async def refresh_token(request: Request) -> None:
-    """Refreshes the access token using the refresh token."""
+    """Refreshes the ID token using the refresh token."""
     async with httpx.AsyncClient() as http:
         try:
             r = await http.post(
@@ -74,7 +74,7 @@ async def refresh_token(request: Request) -> None:
                 ),
                 data={
                     "grant_type": "refresh_token",
-                    "refresh_token": refresh_token,
+                    "refresh_token": request.session["refresh_token"],
                 },
             )
             _ = r.raise_for_status()
@@ -93,11 +93,11 @@ async def refresh_token(request: Request) -> None:
         request.session["id_token"] = new_token["id_token"]
         request.session["expires_at"] = int(time.time()) + new_token["expires_in"]
 
-        logger.info("Successfully refreshed access token")
+        logger.info("Successfully refreshed ID token")
 
 
 async def get_current_user_token(request: Request) -> str:
-    """Checks for a valid session and returns the access token."""
+    """Checks for a valid session and returns the ID token."""
     try:
         _ = request.session["id_token"]  # pyright: ignore[reportAny]
     except KeyError:

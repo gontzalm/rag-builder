@@ -1,3 +1,8 @@
+{% extends "partial_base.html" %}
+
+{% block title %}New Document - {{ super() }}{% endblock %}
+
+{% block content %}
 <nav aria-label="breadcrumb">
   <ul>
     <li><a href="#">📥 Load Document</a></li>
@@ -16,7 +21,9 @@
 
   <button type="submit" aria-busy="false">Load Document</button>
 </form>
+{% endblock %}
 
+{% block extra_scripts %}
 <script>
   document.querySelector("form").addEventListener("htmx:beforeRequest", function (evt) {
     evt.detail.elt.querySelector("button").setAttribute("aria-busy", "true");
@@ -25,3 +32,4 @@
     evt.detail.elt.querySelector("button").setAttribute("aria-busy", "false");
   });
 </script>
+{% endblock %}

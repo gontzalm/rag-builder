@@ -171,7 +171,10 @@ class RagBuilderStack(cdk.Stack):
                     "http://127.0.0.1:8000/auth/callback",
                     f"{frontend_app.apigw.url}/auth/callback",
                 ],
-                logout_urls=["http://127.0.0.1:8000", frontend_app.apigw.url],
+                logout_urls=[
+                    "http://127.0.0.1:8000/frontend/logged-out",
+                    f"{frontend_app.apigw.url}/frontend/logged-out",
+                ],
             ),
             generate_secret=True,
         )

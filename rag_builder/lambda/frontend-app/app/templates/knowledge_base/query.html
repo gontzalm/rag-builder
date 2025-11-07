@@ -1,3 +1,8 @@
+{% extends "base.html" if not request.headers.get('HX-Request') else "partial_base.html" %}
+
+{% block title %}Query - {{ super() }}{% endblock %}
+
+{% block content %}
 <nav aria-label="breadcrumb">
   <ul>
     <li><a href="#">📚 Knowledge Base</a></li>
@@ -18,7 +23,9 @@
 </form>
 
 <div id="response"></div>
+{% endblock %}
 
+{% block extra_scripts %}
 <script>
   document.querySelector("form").addEventListener("htmx:beforeRequest", function (evt) {
     evt.detail.elt.querySelector("button").setAttribute("aria-busy", "true");
@@ -27,3 +34,4 @@
     evt.detail.elt.querySelector("button").setAttribute("aria-busy", "false");
   });
 </script>
+{% endblock %}

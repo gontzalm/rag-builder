@@ -2,12 +2,12 @@
 
 ## Auth
 
-- [ ] Logout flow not working
-- [ ] Refresh token flow not working
+- [x] Logout flow not working
+- [x] Refresh token flow not working
 
 ## Backend
 
-- [ ] Fix doc title
+- [x] Fix doc title
 
 ## Frontend
 

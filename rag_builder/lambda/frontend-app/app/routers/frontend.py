@@ -1,5 +1,5 @@
-import os
 from pathlib import Path
+from typing import Annotated
 
 import httpx
 from fastapi import APIRouter, Depends, Form, Request
@@ -16,22 +16,28 @@ router = APIRouter(prefix="/frontend", tags=["frontend"])
 @router.get("")
 async def get_home_page(
     request: Request,
-    token: str = Depends(get_current_user_token),  # pyright: ignore[reportCallInDefaultInitializer]
-) -> HTMLResponse:
-    return templates.TemplateResponse(
-        request, "index.html", context={"user": request.session["email"]}
-    )
-
-
-@router.get("/knowledge-base/available-documents")
-async def get_available_documents_loader(
-    request: Request,
-    token: str = Depends(get_current_user_token),  # pyright: ignore[reportCallInDefaultInitializer]
+    _: str = Depends(get_current_user_token),  # pyright: ignore[reportCallInDefaultInitializer]
 ) -> HTMLResponse:
     return templates.TemplateResponse(
         request,
-        "knowledge_base/available_documents_loader.html",
-        context={},
+        "index.html",
+        context={"user": request.session["email"]},
+    )
+
+
+@router.get("/logged-out")
+async def get_logged_out_page(request: Request) -> HTMLResponse:
+    """Page to show after logging out."""
+    return templates.TemplateResponse(request, "logged_out.html", context={})
+
+
+@router.get("/knowledge-base/available-documents")
+async def get_available_documents(
+    request: Request,
+    _: str = Depends(get_current_user_token),  # pyright: ignore[reportCallInDefaultInitializer]
+) -> HTMLResponse:
+    return templates.TemplateResponse(
+        request, "knowledge_base/available_documents.html"
     )
 
 
@@ -45,11 +51,11 @@ async def get_available_documents_data(
             f"{BACKEND_API_URL}/document",
             headers={"Authorization": f"Bearer {token}"},
         )
-        r.raise_for_status()
-        documents = r.json()["documents"]
+        _ = r.raise_for_status()
+        documents = r.json()["documents"]  # pyright: ignore[reportAny]
     return templates.TemplateResponse(
         request,
-        "knowledge_base/available_documents.html",
+        "knowledge_base/available_documents_table.html",
         context={"documents": documents},
     )
 
@@ -65,17 +71,17 @@ async def delete_document(
             f"{BACKEND_API_URL}/document/{document_id}",
             headers={"Authorization": f"Bearer {token}"},
         )
-        r.raise_for_status()
+        _ = r.raise_for_status()
 
-    return await get_available_documents_loader(request, token)
+    return await get_available_documents(request, token)
 
 
 @router.get("/knowledge-base/query")
 async def get_query(
     request: Request,
-    token: str = Depends(get_current_user_token),  # pyright: ignore[reportCallInDefaultInitializer]
+    _: str = Depends(get_current_user_token),  # pyright: ignore[reportCallInDefaultInitializer]
 ) -> HTMLResponse:
-    return templates.TemplateResponse(request, "knowledge_base/query.html", context={})
+    return templates.TemplateResponse(request, "knowledge_base/query.html")
 
 
 @router.get("/knowledge-base/query/search")
@@ -90,8 +96,8 @@ async def search_query(
             params={"query": query},
             headers={"Authorization": f"Bearer {token}"},
         )
-        r.raise_for_status()
-        agent_response = r.json()["agent_response"]
+        _ = r.raise_for_status()
+        agent_response = r.json()["agent_response"]  # pyright: ignore[reportAny]
 
     return templates.TemplateResponse(
         request,
@@ -103,18 +109,16 @@ async def search_query(
 @router.get("/load-document/new-document")
 async def get_new_document(
     request: Request,
-    token: str = Depends(get_current_user_token),  # pyright: ignore[reportCallInDefaultInitializer]
+    _: str = Depends(get_current_user_token),  # pyright: ignore[reportCallInDefaultInitializer]
 ) -> HTMLResponse:
-    return templates.TemplateResponse(
-        request, "load_document/new_document.html", context={}
-    )
+    return templates.TemplateResponse(request, "load_document/new_document.html")
 
 
 @router.post("/load-document/new-document")
 async def post_new_document(
     request: Request,
-    source: str = Form(...),
-    url: str = Form(...),
+    source: Annotated[str, Form()],
+    url: Annotated[str, Form()],
     token: str = Depends(get_current_user_token),  # pyright: ignore[reportCallInDefaultInitializer]
 ) -> HTMLResponse:
     async with httpx.AsyncClient() as client:
@@ -123,22 +127,21 @@ async def post_new_document(
             json={"source": source, "url": url},
             headers={"Authorization": f"Bearer {token}"},
         )
-        r.raise_for_status()
+        _ = r.raise_for_status()
 
     return templates.TemplateResponse(
-        request, "load_document/new_document_success.html", context={}
+        request, "load_document/new_document_success.html"
     )
 
 
 @router.get("/load-document/load-history")
-async def get_load_history_loader(
+async def get_load_history(
     request: Request,
-    token: str = Depends(get_current_user_token),  # pyright: ignore[reportCallInDefaultInitializer]
+    _: str = Depends(get_current_user_token),  # pyright: ignore[reportCallInDefaultInitializer]
 ) -> HTMLResponse:
     return templates.TemplateResponse(
         request,
-        "load_document/load_history_loader.html",
-        context={},
+        "load_document/load_history.html",
     )
 
 
@@ -152,11 +155,12 @@ async def get_load_history_data(
             f"{BACKEND_API_URL}/document/load_history",
             headers={"Authorization": f"Bearer {token}"},
         )
-        r.raise_for_status()
-        load_history = r.json()["load_history"]
+        _ = r.raise_for_status()
+        load_history = r.json()["load_history"]  # pyright: ignore[reportAny]
+        load_history.sort(key=lambda x: x["started_at"] or "", reverse=True)  # pyright: ignore[reportAny, reportUnknownLambdaType]
 
     return templates.TemplateResponse(
         request,
-        "load_document/load_history.html",
+        "load_document/load_history_table.html",
         context={"load_history": load_history},
     )

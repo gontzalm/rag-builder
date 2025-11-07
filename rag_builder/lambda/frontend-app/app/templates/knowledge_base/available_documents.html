@@ -1,3 +1,8 @@
+{% extends "partial_base.html" %}
+
+{% block title %}Available Documents - {{ super() }}{% endblock %}
+
+{% block content %}
 <nav aria-label="breadcrumb">
   <ul>
     <li><a href="#">📚 Knowledge Base</a></li>
@@ -5,7 +10,18 @@
   </ul>
 </nav>
 
-<table role="grid">
+<button
+  id="refresh-button"
+  hx-get="/frontend/knowledge-base/available-documents/data"
+  hx-target="#table"
+  hx-swap="innerHTML"
+  class="outline"
+  aria-busy="false"
+>
+  Refresh
+</button>
+
+<table>
   <thead>
     <tr>
       <th>Title</th>
@@ -13,20 +29,32 @@
       <th></th>
     </tr>
   </thead>
-  <tbody>
-    {% for document in documents %}
+  <tbody
+    id="table"
+    hx-get="/frontend/knowledge-base/available-documents/data"
+    hx-trigger="load"
+    hx-swap="innerHTML"
+  >
     <tr>
-      <td>{{ document.title }}</td>
-      <td><a href="{{ document.url }}" target="_blank">{{ document.url }}</a></td>
-      <td>
-        <button
-          class="btn-danger"
-          data-delete-url="/frontend/knowledge-base/available-documents/{{ document.document_id }}"
-        >
-          Delete
-        </button>
+      <td colspan="7" style="text-align: center">
+        <p aria-busy="true">Retrieving available documents...</p>
       </td>
     </tr>
-    {% endfor %}
   </tbody>
 </table>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+  document
+    .getElementById("refresh-button")
+    .addEventListener("htmx:beforeRequest", function (evt) {
+      evt.detail.elt.setAttribute("aria-busy", "true");
+    });
+  document
+    .getElementById("refresh-button")
+    .addEventListener("htmx:afterRequest", function (evt) {
+      evt.detail.elt.setAttribute("aria-busy", "false");
+    });
+</script>
+{% endblock %}

@@ -1,6 +1,7 @@
 import logging
 import os
 import textwrap
+from pathlib import Path
 
 from langchain.agents import create_agent  # pyright: ignore[reportUnknownVariableType]
 from langchain.tools import tool  # pyright: ignore[reportUnknownVariableType]
@@ -35,12 +36,6 @@ def retrieve_context(query: str) -> tuple[str, list[Document]]:
 
 model = ChatBedrockConverse(model=_AGENT_MODEL)
 tools = [retrieve_context]
-prompt = textwrap.dedent("""\
-    - You have access to a tool that retrieves context from a vector store with
-      different documents. Use the tool to help answer user queries.
-    - If you can provide a reliable answer, also provide the references to the documents.
-    - If you cannot provide a reliable answer, state it and kindly ask the user to only
-      perform queries related to documents available in the vector store.
-""")
+instructions = Path("instructions.md")
 
-rag_agent = create_agent(model, tools, system_prompt=prompt)  # pyright: ignore[reportUnknownVariableType]
+rag_agent = create_agent(model, tools, system_prompt=instructions.read_text())  # pyright: ignore[reportUnknownVariableType]

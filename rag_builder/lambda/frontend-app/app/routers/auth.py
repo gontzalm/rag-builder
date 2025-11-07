@@ -84,6 +84,6 @@ async def logout(request: Request):
 
     logout_url = URL(COGNITO_URL["logout"]).include_query_params(
         client_id=COGNITO_CLIENT_CREDENTIALS["client_id"],
-        logout_uri=request.url_for("get_frontend"),
+        logout_uri=request.url_for("get_logged_out_page"),
     )
     return RedirectResponse(logout_url)

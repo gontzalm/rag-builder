@@ -1,3 +1,7 @@
+{% extends "base.html" if not request.headers.get('HX-Request') else "partial_base.html" %}
+
+{% block content %}
 <article>
-  <p>{{ agent_response }}</p>
+  <md-block>{{ agent_response }}</md-block>
 </article>
+{% endblock %}

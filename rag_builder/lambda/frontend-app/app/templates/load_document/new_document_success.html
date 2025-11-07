@@ -1,6 +1,21 @@
-<h2>Document Load Initiated</h2>
+{% extends "partial_base.html" %}
 
-<p>The document is being loaded. You can check the status in the Load History section.</p>
+{% block title %}Document Load Initiated - {{ super() }}{% endblock %}
 
-<button hx-get="/frontend/load-document/new-document" hx-target="#content">Add another document</button>
-<button hx-get="/frontend/load-document/load-history" hx-target="#content">View load history</button>
+{% block content %}
+<nav aria-label="breadcrumb">
+  <ul>
+    <li><a href="#">📥 Load Document</a></li>
+    <li>➕ New Document</li>
+  </ul>
+</nav>
+
+<p>
+  The document is being loaded. You can check the status in the Load History
+  section.
+</p>
+
+<button hx-get="/frontend/load-document/load-history" hx-target="#content">
+  View load history
+</button>
+{% endblock %}

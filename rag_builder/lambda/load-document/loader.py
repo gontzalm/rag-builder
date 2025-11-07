@@ -48,11 +48,28 @@ class LanceDbLoader(ABC):
     def _loader(self) -> BaseLoader:
         raise NotImplementedError
 
-    def _split_documents(self) -> list[Document]:
+    @cached_property
+    def _doc_title(self) -> str:
+        try:
+            title = self._documents[0].metadata["title"]  # pyright: ignore[reportUnknownVariableType, reportUnknownMemberType]
+        except KeyError:
+            title = "Unknown"
+
+        return title  # pyright: ignore[reportUnknownVariableType]
+
+    @cached_property
+    def _extra_metadata(self) -> dict[str, str]:
+        return {"url": self.url}
+
+    def _load_and_split_documents(self) -> None:
         logger.info("Recursively splitting documents")
-        return RecursiveCharacterTextSplitter().split_documents(
-            self._loader.lazy_load()
+        self._documents: list[Document] = (
+            RecursiveCharacterTextSplitter().split_documents(self._loader.lazy_load())
         )
+
+    def _add_extra_metadata(self) -> None:
+        for doc in self._documents:
+            doc.metadata.update(self._extra_metadata)  # pyright: ignore[reportUnknownMemberType]
 
     def _mark_in_progress(self) -> None:
         _ = self._http.patch(
@@ -73,16 +90,19 @@ class LanceDbLoader(ABC):
         )
 
     def _add_document(self) -> None:
-        _ = self._http.post("/document", json={"title": "test", "url": self.url})
+        _ = self._http.post(
+            "/document", json={"title": self._doc_title, "url": self.url}
+        )
 
     def load_document(self) -> None:
         logger.info("Starting document load ID '%s'", self.load_id)
         self._mark_in_progress()
         try:
-            documents = self._split_documents()
+            self._load_and_split_documents()
+            self._add_extra_metadata()
             _ = self._vector_store.add_documents(
-                documents,
-                ids=[f"{self.load_id}-{i:04d}" for i in range(len(documents))],
+                self._documents,
+                ids=[f"{self.load_id}-{i:04d}" for i in range(len(self._documents))],
             )
         except Exception as e:
             self._mark_failed(e)
