@@ -8,8 +8,12 @@ from typing import Literal, TypedDict, final
 import aws_cdk as cdk
 import aws_cdk.aws_cognito as cognito
 from aws_cdk import aws_apigateway as apigw
+from aws_cdk import aws_cloudfront as cloudfront
+from aws_cdk import aws_iam as iam
 from aws_cdk import aws_lambda as lambda_
-from aws_cdk.aws_iam import IGrantable
+from aws_cdk import aws_s3 as s3
+from aws_cdk import aws_s3_deployment as s3_deployment
+from aws_cdk import aws_sam as sam
 from constructs import Construct
 
 BASE_DIR = Path(__file__).parent
@@ -202,7 +206,7 @@ class FastApiLambdaFunction(Construct):
                 "AWS_LAMBDA_EXEC_WRAPPER": "/opt/bootstrap",
                 "AWS_LWA_PORT": "8080",
                 "CORS_ALLOW_ORIGINS": ",".join(
-                    ["http://127.0.0.1:8000"] + (cors_allow_origins or [])
+                    ["http://localhost:5173"] + (cors_allow_origins or [])
                 ),
                 **(environment or {}),
             },
@@ -214,11 +218,9 @@ class FastApiLambdaFunction(Construct):
             scope,
             f"{id}-apigw",
             default_cors_preflight_options=apigw.CorsOptions(
-                allow_origins=cors_allow_origins,
+                allow_origins=["http://localhost:5173"] + (cors_allow_origins or []),
                 allow_credentials=True,
-            )
-            if cors_allow_origins is not None
-            else None,
+            ),
         )
 
         self.iam_authorized_methods: list[apigw.Method] = []
@@ -249,6 +251,6 @@ class FastApiLambdaFunction(Construct):
             else None,
         )
 
-    def grant_execute_on_iam_methods(self, grantee: IGrantable) -> None:
+    def grant_execute_on_iam_methods(self, grantee: iam.IGrantable) -> None:
         for method in self.iam_authorized_methods:
             _ = method.grant_execute(grantee)

@@ -1,21 +1,19 @@
 import aws_cdk as cdk
 import aws_cdk.aws_bedrock as bedrock
+import aws_cdk.aws_cloudfront as cloudfront
+import aws_cdk.aws_cloudfront_origins as cloudfront_origins
 import aws_cdk.aws_cognito as cognito
 import aws_cdk.aws_dynamodb as dynamodb
 import aws_cdk.aws_iam as iam
 import aws_cdk.aws_lambda_event_sources as lambda_events
 import aws_cdk.aws_s3 as s3
+import aws_cdk.aws_s3_deployment as s3_deployment
 import aws_cdk.aws_scheduler as scheduler
 import aws_cdk.aws_scheduler_targets as scheduler_targets
-import aws_cdk.aws_secretsmanager as secretsmanager
 from aws_cdk import aws_sqs as sqs
 from constructs import Construct
 
-from rag_builder.constructs import (
-    Endpoint,
-    FastApiLambdaFunction,
-    PythonFunction,
-)
+from rag_builder.constructs import FastApiLambdaFunction, PythonFunction
 
 
 class RagBuilderStack(cdk.Stack):
@@ -100,28 +98,20 @@ class RagBuilderStack(cdk.Stack):
             self,
             "user-pool",
             sign_in_aliases=cognito.SignInAliases(email=True),
-            auto_verify=cognito.AutoVerifiedAttrs(email=True),
-            self_sign_up_enabled=True,
-            user_verification=cognito.UserVerificationConfig(
-                email_subject="RAG Builder - Email verification",
-                email_body="Thanks for signing up to RAG Builder. Your verification code is {####}.",
-            ),
-            email=cognito.UserPoolEmail.with_cognito(),
             removal_policy=cdk.RemovalPolicy.DESTROY,
         )
-        user_pool_domain = user_pool.add_domain(
-            "user-pool-domain",
-            cognito_domain=cognito.CognitoDomainOptions(
-                domain_prefix=f"rag-builder-{self.account}"
-            ),
-            managed_login_version=cognito.ManagedLoginVersion.NEWER_MANAGED_LOGIN,
+        _ = cdk.CfnOutput(self, "user-pool-id-output", value=user_pool.user_pool_id)
+
+        # Frontend App
+        app_client = user_pool.add_client(
+            "frontend-app-client",
         )
+        _ = cdk.CfnOutput(
+            self, "user-pool-client-output", value=app_client.user_pool_client_id
+        )
+        # TODO: add Chainlint App Runner deployment
 
         # Backend API
-        IAM_AUTHORIZED_ENDPOINTS: list[Endpoint] = [
-            {"path": "/document/load/{id}", "methods": ["PATCH"]},
-            {"path": "/document", "methods": ["POST"]},
-        ]
         backend_api = FastApiLambdaFunction(
             self,
             "backend-api-fastapi",
@@ -132,67 +122,15 @@ class RagBuilderStack(cdk.Stack):
                 "DOCUMENT_DELETION_QUEUE": document_deletion_queue.queue_url,
             },
             cognito_authorizer_pool=user_pool,
-            iam_authorized_endpoints=IAM_AUTHORIZED_ENDPOINTS,
+            iam_authorized_endpoints=[
+                {"path": "/document/load/{id}", "methods": ["PATCH"]},
+                {"path": "/document", "methods": ["POST"]},
+            ],
         )
         _ = document_table.grant_read_write_data(backend_api.function)
         _ = document_load_history_table.grant_read_write_data(backend_api.function)
         _ = document_load_queue.grant_send_messages(backend_api.function)
         _ = document_deletion_queue.grant_send_messages(backend_api.function)
-
-        # Frontend App
-        frontend_app = FastApiLambdaFunction(
-            self,
-            "frontend-app-fastapi",
-            environment={
-                "COGNITO_USER_POOL_ID": user_pool.user_pool_id,
-                "COGNITO_DOMAIN": user_pool_domain.base_url(),
-                "BACKEND_API_URL": backend_api.apigw.url,
-            },
-        )
-        _ = user_pool.grant(
-            frontend_app.function,
-            "cognito-idp:ListUserPoolClients",
-            "cognito-idp:DescribeUserPoolClient",
-        )
-
-        app_client = user_pool.add_client(
-            "frontend-app-client",
-            # Predictable name to fetch the client ID and secret from the frontend app
-            # Avoids circular dependencies in CDK (`frontend_app` must not depend on `app_client`)
-            user_pool_client_name="frontend-app-client",
-            o_auth=cognito.OAuthSettings(
-                flows=cognito.OAuthFlows(authorization_code_grant=True),
-                scopes=[
-                    cognito.OAuthScope.OPENID,  # pyright: ignore[reportAny]
-                    cognito.OAuthScope.EMAIL,  # pyright: ignore[reportAny]
-                    cognito.OAuthScope.PROFILE,  # pyright: ignore[reportAny]
-                ],
-                callback_urls=[
-                    "http://127.0.0.1:8000/auth/callback",
-                    f"{frontend_app.apigw.url}/auth/callback",
-                ],
-                logout_urls=[
-                    "http://127.0.0.1:8000/frontend/logged-out",
-                    f"{frontend_app.apigw.url}/frontend/logged-out",
-                ],
-            ),
-            generate_secret=True,
-        )
-        _ = cognito.CfnManagedLoginBranding(
-            self,
-            "frontend-app-managed-login-branding",
-            user_pool_id=user_pool.user_pool_id,
-            client_id=app_client.user_pool_client_id,
-            use_cognito_provided_values=True,
-        )
-
-        app_secret_key_secret = secretsmanager.Secret(
-            self, "frontend-app-secret-key-secret"
-        )
-        _ = frontend_app.function.add_environment(
-            "APP_SECRET_KEY_SECRET", app_secret_key_secret.secret_name
-        )
-        _ = app_secret_key_secret.grant_read(frontend_app.function)
 
         # Lambda Functions
         load_document_function = PythonFunction(
@@ -215,20 +153,6 @@ class RagBuilderStack(cdk.Stack):
         )
         backend_api.grant_execute_on_iam_methods(load_document_function.function)
 
-        # for endpoint in IAM_AUTHORIZED_ENDPOINTS:
-        #     load_document_function.function.add_to_role_policy(
-        #         iam.PolicyStatement(
-        #             actions=["execute-api:Invoke"],
-        #             resources=[
-        #                 backend_api.apigw.arn_for_execute_api(
-        #                     method=method,
-        #                     path=endpoint["path"],
-        #                     stage=backend_api.apigw.deployment_stage.stage_name,
-        #                 )
-        #                 for method in endpoint["methods"]
-        #             ],
-        #         )
-        #     )
         load_document_function.function.add_event_source(
             lambda_events.SqsEventSource(document_load_queue, batch_size=1)
         )
@@ -271,27 +195,28 @@ class RagBuilderStack(cdk.Stack):
             ),
         )
 
-        query_knowledge_base_function = PythonFunction(
-            self,
-            "query-knowledge-base-function",
-            containerized=True,
-            memory=1024,
-            timeout=cdk.Duration.minutes(1),
-            environment={
-                "VECTOR_STORE_BUCKET": vector_store_bucket.bucket_name,
-                "EMBEDDINGS_MODEL": embeddings_model.model_arn.partition("/")[2],
-                "AGENT_MODEL": agent_model.model_arn.partition("/")[2],
-            },
-        )
-        _ = vector_store_bucket.grant_read(query_knowledge_base_function.function)
-        query_knowledge_base_function.function.add_to_role_policy(
-            iam.PolicyStatement(
-                actions=["bedrock:InvokeModel"],
-                resources=[embeddings_model.model_arn, agent_model.model_arn],
-            )
-        )
-        _ = query_knowledge_base_function.function.grant_invoke(backend_api.function)
-        _ = backend_api.function.add_environment(
-            "QUERY_KNOWLEDGE_BASE_FUNCTION",
-            query_knowledge_base_function.function.function_name,
-        )
+        # TODO: move logic to chainlit app
+        # query_knowledge_base_function = PythonFunction(
+        #     self,
+        #     "query-knowledge-base-function",
+        #     containerized=True,
+        #     memory=1024,
+        #     timeout=cdk.Duration.minutes(1),
+        #     environment={
+        #         "VECTOR_STORE_BUCKET": vector_store_bucket.bucket_name,
+        #         "EMBEDDINGS_MODEL": embeddings_model.model_arn.partition("/")[2],
+        #         "AGENT_MODEL": agent_model.model_arn.partition("/")[2],
+        #     },
+        # )
+        # _ = vector_store_bucket.grant_read(query_knowledge_base_function.function)
+        # query_knowledge_base_function.function.add_to_role_policy(
+        #     iam.PolicyStatement(
+        #         actions=["bedrock:InvokeModel"],
+        #         resources=[embeddings_model.model_arn, agent_model.model_arn],
+        #     )
+        # )
+        # _ = query_knowledge_base_function.function.grant_invoke(backend_api.function)
+        # _ = backend_api.function.add_environment(
+        #     "QUERY_KNOWLEDGE_BASE_FUNCTION",
+        #     query_knowledge_base_function.function.function_name,
+        # )
