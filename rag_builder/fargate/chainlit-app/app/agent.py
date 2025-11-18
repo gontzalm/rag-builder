@@ -1,6 +1,5 @@
 import logging
 import os
-import textwrap
 from pathlib import Path
 
 from langchain.agents import create_agent  # pyright: ignore[reportUnknownVariableType]
@@ -34,8 +33,8 @@ def retrieve_context(query: str) -> tuple[str, list[Document]]:
     return serialized, retrieved_docs
 
 
-model = ChatBedrockConverse(model=_AGENT_MODEL)
+model = ChatBedrockConverse(model=_AGENT_MODEL, temperature=0.5)
 tools = [retrieve_context]
-instructions = Path("instructions.md")
+instructions = Path("agent_instructions.md")
 
 rag_agent = create_agent(model, tools, system_prompt=instructions.read_text())  # pyright: ignore[reportUnknownVariableType]

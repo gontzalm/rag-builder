@@ -1,7 +1,7 @@
 import logging
 import os
 import uuid
-from datetime import UTC, datetime
+from datetime import UTC, datetime, timedelta
 from enum import Enum
 
 import boto3  # pyright: ignore[reportMissingTypeStubs]
@@ -49,15 +49,26 @@ class DocumentLoadMessage(BaseModel):
 
 class DocumentLoad(BaseModel):
     load_id: UUID4
-    spec: DocumentLoadSpec
+    source: Source
+    url: HttpUrl
     status: Status = Status.pending
     started_at: datetime | None = None
     completed_at: datetime | None = None
     error_details: str | None = None
+    ttl: int
+
+
+class DocumentLoadProjected(BaseModel):
+    source: Source
+    url: HttpUrl
+    status: Status
+    started_at: datetime | None
+    completed_at: datetime | None
+    error_details: str | None = None
 
 
 class GetLoadHistoryResponse(BaseModel):
-    load_history: list[DocumentLoad]
+    load_history: list[DocumentLoadProjected]
     next_token: str | None = None
 
 
@@ -90,8 +101,8 @@ class DocumentDeletionMessage(BaseModel):
 
 
 router = APIRouter(
-    prefix="/document",
-    tags=["document"],
+    prefix="/documents",
+    tags=["documents"],
 )
 
 
@@ -112,7 +123,12 @@ async def load_document(spec: DocumentLoadSpec) -> None:
     )
 
     document_load_history_table.put_item(  # pyright: ignore[reportUnknownMemberType]
-        Item=DocumentLoad(load_id=load_id, spec=spec).model_dump(mode="json")
+        Item=DocumentLoad(
+            load_id=load_id,
+            source=spec.source,
+            url=spec.url,
+            ttl=int((datetime.now(tz=UTC) + timedelta(days=7)).timestamp()),
+        ).model_dump(mode="json")
     )
     logger.info(
         "Inserted document load ID '%s' status into DynamoDB table '%s'",
@@ -123,7 +139,15 @@ async def load_document(spec: DocumentLoadSpec) -> None:
 
 @router.get("/load_history")
 async def get_load_history(next_token: str | None = None) -> GetLoadHistoryResponse:
-    scan_kwargs = {}
+    scan_kwargs = {
+        "ProjectionExpression": ",".join(
+            f"#{f}" for f in DocumentLoadProjected.model_fields
+        ),
+        # Avoid conflict with reserved keywords
+        "ExpressionAttributeNames": {
+            f"#{f}": f for f in DocumentLoadProjected.model_fields
+        },
+    }
 
     if next_token is not None:
         scan_kwargs["ExclusiveStartKey"] = next_token
@@ -135,11 +159,11 @@ async def get_load_history(next_token: str | None = None) -> GetLoadHistoryRespo
         next_token = r["LastEvaluatedKey"]  # pyright: ignore[reportUnknownVariableType]
     except KeyError:
         return GetLoadHistoryResponse(
-            load_history=[DocumentLoad(**item) for item in items]  # pyright: ignore[reportUnknownVariableType, reportUnknownArgumentType]
+            load_history=[DocumentLoadProjected(**item) for item in items]  # pyright: ignore[reportUnknownVariableType, reportUnknownArgumentType]
         )
     else:
         return GetLoadHistoryResponse(
-            load_history=[DocumentLoad(**item) for item in items],  # pyright: ignore[reportUnknownArgumentType, reportUnknownVariableType]
+            load_history=[DocumentLoadProjected(**item) for item in items],  # pyright: ignore[reportUnknownArgumentType, reportUnknownVariableType]
             next_token=next_token,  # pyright: ignore[reportUnknownArgumentType]
         )
 

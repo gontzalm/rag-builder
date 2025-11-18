@@ -2,4 +2,7 @@
 name = "backend-api"
 version = "0.1.0"
 requires-python = ">= 3.12"
-dependencies = ["boto3>=1.40.55", "fastapi>=0.119.1", "uvicorn>=0.38.0"]
+dependencies = [
+    "boto3>=1.40.72",
+    "fastapi[standard]>=0.121.0",
+]

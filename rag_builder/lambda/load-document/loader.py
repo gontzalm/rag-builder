@@ -73,25 +73,25 @@ class LanceDbLoader(ABC):
 
     def _mark_in_progress(self) -> None:
         _ = self._http.patch(
-            f"/document/load/{self.load_id}",
+            f"/documents/load/{self.load_id}",
             json={"status": "in_progress", "started_at": str(datetime.now(tz=UTC))},
         )
 
     def _mark_completed(self) -> None:
         _ = self._http.patch(
-            f"/document/load/{self.load_id}",
+            f"/documents/load/{self.load_id}",
             json={"status": "completed", "completed_at": str(datetime.now(tz=UTC))},
         )
 
     def _mark_failed(self, e: Exception) -> None:
         _ = self._http.patch(
-            f"/document/load/{self.load_id}",
+            f"/documents/load/{self.load_id}",
             json={"status": "failed", "error_details": repr(e)},
         )
 
     def _add_document(self) -> None:
         _ = self._http.post(
-            "/document", json={"title": self._doc_title, "url": self.url}
+            "/documents", json={"title": self._doc_title, "url": self.url}
         )
 
     def load_document(self) -> None:

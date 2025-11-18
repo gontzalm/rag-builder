@@ -1,8 +1,0 @@
-{
-  "rag-builder-stack": {
-    "userpoolidoutput": "us-east-1_igjE2gpAH",
-    "distributiondomainnameoutput": "d2k847a6e9eta1.cloudfront.net",
-    "backendapifastapiapigwEndpointD9600212": "https://76celm6276.execute-api.us-east-1.amazonaws.com/prod/",
-    "userpoolclientoutput": "4jol6f9ku8kbju793qgoqqvfi0"
-  }
-}

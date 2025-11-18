@@ -152,6 +152,7 @@ class FastApiLambdaFunction(Construct):
         memory: int = 256,
         environment: dict[str, str] | None = None,
         cognito_authorizer_pool: cognito.UserPool | None = None,
+        cognito_authorization_scopes: Sequence[cognito.OAuthScope] | None = None,
         iam_authorized_endpoints: list[Endpoint] | None = None,
         cors_allow_origins: list[str] | None = None,
     ) -> None:
@@ -206,7 +207,7 @@ class FastApiLambdaFunction(Construct):
                 "AWS_LAMBDA_EXEC_WRAPPER": "/opt/bootstrap",
                 "AWS_LWA_PORT": "8080",
                 "CORS_ALLOW_ORIGINS": ",".join(
-                    ["http://localhost:5173"] + (cors_allow_origins or [])
+                    ["http://localhost:8000"] + (cors_allow_origins or [])
                 ),
                 **(environment or {}),
             },
@@ -218,19 +219,19 @@ class FastApiLambdaFunction(Construct):
             scope,
             f"{id}-apigw",
             default_cors_preflight_options=apigw.CorsOptions(
-                allow_origins=["http://localhost:5173"] + (cors_allow_origins or []),
+                allow_origins=["http://localhost:8000"] + (cors_allow_origins or []),
                 allow_credentials=True,
             ),
         )
 
-        self.iam_authorized_methods: list[apigw.Method] = []
+        self._iam_authorized_methods: list[apigw.Method] = []
 
         if iam_authorized_endpoints is not None:
             for endpoint in iam_authorized_endpoints:
                 resource = self.apigw.root.resource_for_path(endpoint["path"])
 
                 for method in endpoint["methods"]:
-                    self.iam_authorized_methods.append(
+                    self._iam_authorized_methods.append(
                         resource.add_method(
                             method,
                             lambda_integration,
@@ -245,12 +246,17 @@ class FastApiLambdaFunction(Construct):
                     self,
                     f"{id}-cognito-authorizer",
                     cognito_user_pools=[cognito_authorizer_pool],
-                )
+                ),
+                authorization_scopes=[
+                    scope.scope_name for scope in cognito_authorization_scopes
+                ]
+                if cognito_authorization_scopes is not None
+                else None,
             )
             if cognito_authorizer_pool is not None
             else None,
         )
 
     def grant_execute_on_iam_methods(self, grantee: iam.IGrantable) -> None:
-        for method in self.iam_authorized_methods:
+        for method in self._iam_authorized_methods:
             _ = method.grant_execute(grantee)

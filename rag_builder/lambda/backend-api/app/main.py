@@ -4,7 +4,7 @@ import os
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from app.routers import document
+from app.routers import documents
 
 logging.basicConfig(level=logging.INFO)
 
@@ -17,7 +17,7 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-app.include_router(document.router)
+app.include_router(documents.router)
 
 
 @app.get("/")
