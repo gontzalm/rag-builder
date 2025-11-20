@@ -33,6 +33,13 @@ class RagBuilderStack(cdk.Stack):
             auto_delete_objects=True,
         )
 
+        chainlit_bucket = s3.Bucket(
+            self,
+            "chainlit-bucket",
+            removal_policy=cdk.RemovalPolicy.DESTROY,
+            auto_delete_objects=True,
+        )
+
         # DYNAMODB
         document_table = dynamodb.Table(
             self,
@@ -55,6 +62,34 @@ class RagBuilderStack(cdk.Stack):
             time_to_live_attribute="ttl",
             billing_mode=dynamodb.BillingMode.PAY_PER_REQUEST,
             removal_policy=cdk.RemovalPolicy.DESTROY,
+        )
+
+        chainlit_table = dynamodb.Table(
+            self,
+            "chainlit-table",
+            partition_key=dynamodb.Attribute(
+                name="PK",
+                type=dynamodb.AttributeType.STRING,
+            ),
+            sort_key=dynamodb.Attribute(
+                name="SK",
+                type=dynamodb.AttributeType.STRING,
+            ),
+            billing_mode=dynamodb.BillingMode.PAY_PER_REQUEST,
+            removal_policy=cdk.RemovalPolicy.DESTROY,
+        )
+        chainlit_table.add_global_secondary_index(
+            index_name="UserThread",
+            partition_key=dynamodb.Attribute(
+                name="UserThreadPK",
+                type=dynamodb.AttributeType.STRING,
+            ),
+            sort_key=dynamodb.Attribute(
+                name="UserThreadSK",
+                type=dynamodb.AttributeType.STRING,
+            ),
+            projection_type=dynamodb.ProjectionType.INCLUDE,
+            non_key_attributes=["id", "name"],
         )
 
         # BEDROCK
@@ -238,6 +273,12 @@ class RagBuilderStack(cdk.Stack):
         _ = vector_store_bucket.grant_read(
             chainlit_app_fargate.task_definition.task_role
         )
+        _ = chainlit_bucket.grant_read_write(
+            chainlit_app_fargate.task_definition.task_role
+        )
+        _ = chainlit_table.grant_read_write_data(
+            chainlit_app_fargate.task_definition.task_role
+        )
         _ = chainlit_app_fargate.task_definition.add_to_task_role_policy(
             iam.PolicyStatement(
                 actions=["bedrock:InvokeModel"],
@@ -267,6 +308,11 @@ class RagBuilderStack(cdk.Stack):
                 origin_request_policy=cloudfront.OriginRequestPolicy.ALL_VIEWER_EXCEPT_HOST_HEADER,  # pyright: ignore[reportAny]
             ),
         )
+        _ = cdk.CfnOutput(
+            self,
+            "chainlit-app-url-output",
+            value=f"https://{chainlit_app_distribution.domain_name}",
+        )
 
         chainlit_client = user_pool.add_client(
             "chainlit-app-client",
@@ -280,18 +326,18 @@ class RagBuilderStack(cdk.Stack):
                 ],
                 callback_urls=[
                     "http://localhost:8000/auth/oauth/aws-cognito/callback",
-                    f"https://{chainlit_app_distribution.distribution_domain_name}/auth/oauth/aws-cognito/callback",
+                    f"https://{chainlit_app_distribution.domain_name}/auth/oauth/aws-cognito/callback",
                 ],
                 logout_urls=[
                     "http://localhost:8000/logout",
-                    f"https://{chainlit_app_distribution.distribution_domain_name}/logout",
+                    f"https://{chainlit_app_distribution.domain_name}/logout",
                 ],
             ),
         )
 
         for k, v in {
             # Auth
-            "CHAINLIT_URL": f"https://{chainlit_app_distribution.distribution_domain_name}",
+            "CHAINLIT_URL": f"https://{chainlit_app_distribution.domain_name}",
             "CHAINLIT_AUTH_SECRET": secrets.token_hex(64),
             "OAUTH_COGNITO_CLIENT_ID": chainlit_client.user_pool_client_id,
             "OAUTH_COGNITO_CLIENT_SECRET": chainlit_client.user_pool_client_secret.unsafe_unwrap(),
@@ -300,6 +346,8 @@ class RagBuilderStack(cdk.Stack):
             ),
             "OAUTH_COGNITO_SCOPE": f"openid profile email {oauth_scope.scope_name}",
             # AWS Resources
+            "CHAINLIT_BUCKET": chainlit_bucket.bucket_name,
+            "CHAINLIT_TABLE": chainlit_table.table_name,
             "VECTOR_STORE_BUCKET": vector_store_bucket.bucket_name,
             "EMBEDDINGS_MODEL": embeddings_model.model_arn.partition("/")[2],
             "AGENT_MODEL": agent_model.model_arn.partition("/")[2],
@@ -322,6 +370,8 @@ class RagBuilderStack(cdk.Stack):
                 OAUTH_COGNITO_SCOPE="openid profile email {oauth_scope.scope_name}"
 
                 # AWS Resources
+                CHAINLIT_BUCKET={chainlit_bucket.bucket_name}
+                CHAINLIT_TABLE={chainlit_table.table_name}
                 VECTOR_STORE_BUCKET={vector_store_bucket.bucket_name}
                 EMBEDDINGS_MODEL={embeddings_model.model_arn.partition("/")[2]}
                 AGENT_MODEL={agent_model.model_arn.partition("/")[2]}

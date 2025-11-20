@@ -5,8 +5,8 @@ related to your documents.
 
 ## How to use
 
-1. Upload your documents (PDFs, text files, etc.) through the `chainlit`
-   interface.
+1. Upload your documents (PDFs, Websites, etc. - more to come!) through the
+   `chainlit` interface.
 1. Ask questions about the content of your uploaded documents.
 1. The `RAG Agent` will retrieve relevant information and generate answers.
 

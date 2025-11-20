@@ -8,8 +8,8 @@ _BACKEND_API_URL = os.environ["BACKEND_API_URL"]
 
 ACTIONS = [
     cl.Action("load_document", {}, label="📄 Load new document"),
-    cl.Action("get_load_history", {}, label="⏳ Show load history"),
-    cl.Action("get_knowledge_base", {}, label="📚 Show knowledge base"),
+    cl.Action("show_load_history", {}, label="⏳ Show load history"),
+    cl.Action("show_knowledge_base", {}, label="📚 Show knowledge base"),
     cl.Action("delete_document", {}, label="🗑️ Delete document in knowledge base"),
 ]
 FOLLOWUP_MESSAGE = (
@@ -19,6 +19,7 @@ FOLLOWUP_MESSAGE = (
 
 @cl.action_callback("load_document")  # pyright: ignore[reportUntypedFunctionDecorator, reportUnknownMemberType]
 async def on_load_document(action: cl.Action) -> None:
+    """Loads a new document with the given user input spec."""
     r = await cl.AskActionMessage(
         "Which is the document source?",
         actions=[
@@ -69,8 +70,9 @@ async def on_load_document(action: cl.Action) -> None:
     await cl.context.emitter.task_end()
 
 
-@cl.action_callback("get_load_history")  # pyright: ignore[reportUnknownMemberType, reportUntypedFunctionDecorator]
+@cl.action_callback("show_load_history")  # pyright: ignore[reportUnknownMemberType, reportUntypedFunctionDecorator]
 async def on_get_load_history(action: cl.Action) -> None:
+    """Shows the load history."""
     msg = cl.Message("Fetching load history...")
     _ = await msg.send()
 
@@ -105,8 +107,9 @@ async def on_get_load_history(action: cl.Action) -> None:
     _ = await cl.Message(FOLLOWUP_MESSAGE, actions=ACTIONS).send()
 
 
-@cl.action_callback("get_knowledge_base")  # pyright: ignore[reportUnknownMemberType, reportUntypedFunctionDecorator]
+@cl.action_callback("show_knowledge_base")  # pyright: ignore[reportUnknownMemberType, reportUntypedFunctionDecorator]
 async def on_get_knowledge_base(action: cl.Action) -> None:
+    """Shows the documents in the knowledge base."""
     msg = cl.Message("Fetching documents in knowledge base...")
     _ = await msg.send()
 
@@ -143,6 +146,7 @@ async def on_get_knowledge_base(action: cl.Action) -> None:
 
 @cl.action_callback("delete_document")  # pyright: ignore[reportUnknownMemberType, reportUntypedFunctionDecorator]
 async def on_delete_document(action: cl.Action) -> None:
+    """Deletes a document from the knowledge base."""
     r = await cl.AskUserMessage("Which is the ID of the document?").send()
 
     if r is None:

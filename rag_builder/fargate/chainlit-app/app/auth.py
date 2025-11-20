@@ -2,15 +2,16 @@ import chainlit as cl
 
 
 def setup_oauth() -> None:
-    @cl.oauth_callback
-    def oauth_callback(
-        provider_id: str,
+    """Sets up OAuth authentication."""
+
+    @cl.oauth_callback  # pyright: ignore[reportUnknownMemberType, reportArgumentType]
+    def oauth_callback(  # pyright: ignore[reportUnusedFunction]
+        provider_id: str,  # pyright: ignore[reportUnusedParameter]
         token: str,
-        raw_user_data: dict[str, str],
+        raw_user_data: dict[str, str],  # pyright: ignore[reportUnusedParameter]
         default_user: cl.User,
     ) -> cl.User:
-        """This function is called *immediately* after a successful Cognito login."""
-        # Store the tokens in the user's session metadata
+        # Store the access token in the user's session metadata
         default_user.metadata = {
             "access_token": token,
         }

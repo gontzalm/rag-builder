@@ -9,7 +9,7 @@
 
 ## Agent & Core Logic
 
-- [ ] Implement conversational memory for the agent
+- [x] Implement conversational memory for the agent
 - [ ] Explore advanced retrieval strategies:
   - [ ] Dynamic `k` for document retrieval
   - [ ] Re-ranking of retrieved documents
@@ -28,4 +28,3 @@
 - [ ] Add comprehensive unit and integration tests
 - [ ] Implement an automated CI/CD pipeline
 - [ ] Set up detailed cost monitoring and alerts
-

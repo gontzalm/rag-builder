@@ -41,16 +41,16 @@ wheels = [
 
 [[package]]
 name = "aws-cdk-cloud-assembly-schema"
-version = "48.19.0"
+version = "48.20.0"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "jsii" },
     { name = "publication" },
     { name = "typeguard" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/ed/ce/f227b810ff087f33d1f57e7f400d4bf87dc8f030abf60b8e33493fcdc7ce/aws_cdk_cloud_assembly_schema-48.19.0.tar.gz", hash = "sha256:b65b6fed87c819c4cbe6866f6c8da428f54a71b5a7ff5244f24ddcc9f0437545", size = 208105, upload-time = "2025-11-17T15:02:23.272Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/a7/b5/1ce2f6bff913ca8c94a001b84290ec4ce3729f54a3af0e3ff0edb303ac20/aws_cdk_cloud_assembly_schema-48.20.0.tar.gz", hash = "sha256:229aa136c26b71b0a82b5a32658eabcd30e344f7e136315fdb6e3de8ef523bfa", size = 208109, upload-time = "2025-11-19T12:19:48.206Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/48/53/a659f8acaed40f9ea52dc014ad832ab3f6833decfe97ff63f8e1ba8457a8/aws_cdk_cloud_assembly_schema-48.19.0-py3-none-any.whl", hash = "sha256:b809be3073225c807e216af70f774d1768852fc4ccd15fb980ebc036f74f966b", size = 207672, upload-time = "2025-11-17T15:02:21.61Z" },
+    { url = "https://files.pythonhosted.org/packages/13/08/17a35f0b668451484f2254f5e50a0105958bffe90da11c41b7629972e6a9/aws_cdk_cloud_assembly_schema-48.20.0-py3-none-any.whl", hash = "sha256:f5b6cf661cac8690add9461de13aeae3f3742eec71c066032bd045b08d0b7c3e", size = 207669, upload-time = "2025-11-19T12:19:46.614Z" },
 ]
 
 [[package]]
