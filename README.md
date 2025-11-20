@@ -1,4 +1,4 @@
-# RAG Builder
+# 🏗️ RAG Builder
 
 RAG Builder is a well-architected, scalable, and secure RAG (Retrieval-Augmented
 Generation) application built on AWS. It allows users to create a knowledge base
@@ -6,7 +6,7 @@ from PDFs and websites and then ask questions about it. The project is built
 with Python, AWS CDK, and LangChain, and it serves as a powerful demonstration
 of how to build production-ready GenAI applications on AWS.
 
-## Architecture
+## 🏛️ Architecture
 
 The application is built using a serverless-first architecture on AWS, designed
 for scalability, security, and maintainability.
@@ -28,7 +28,9 @@ architecture-beta
     service dynamodb(disk)[DynamoDB] in data_plane
     service s3_chainlit(database)[S3] in data_plane
 
-    service vector_store(database)[S3 LanceDB Vector Store] in aws
+    group knowledge_base(database)[Knowledge Base] in aws
+    service dynamodb_metadata(disk)[DynamoDB Metadata] in knowledge_base
+    service vector_store(database)[S3 LanceDB Vector Store] in knowledge_base
 
     %% Bedrock
     service bedrock(cloud)[Bedrock LLM and Embeddings] in aws
@@ -37,7 +39,7 @@ architecture-beta
     service backend(server)[Lambda FastAPI Backend] in aws
 
     %% Data processing
-    service lambda(server)[SQS plus Lambda Data Processing Layer] in aws
+    service lambda(server)[Lambda Data Processing Layer] in aws
 
     %% Edges
     user:R --> L:cloudfront
@@ -47,12 +49,15 @@ architecture-beta
     dynamodb:R -- L:s3_chainlit
     chainlit_app:B -- T:dynamodb{group}
 
-    chainlit_app:B -- R:vector_store
+    dynamodb_metadata:R -- L:vector_store
+    s3_chainlit{group}:R -- L:dynamodb_metadata{group}
 
     chainlit_app:R -- L:bedrock
 
     chainlit_app:R --> L:backend
     backend:R -- L:lambda
+
+    lambda:B -- T:dynamodb_metadata{group}
 ```
 
 ### Key Components
@@ -91,7 +96,7 @@ architecture-beta
   [Amazon EventBridge](https://aws.amazon.com/eventbridge/), optimizes the
   LanceDB vector store to maintain performance.
 
-## Getting Started
+## 🚀 Getting Started
 
 ### Prerequisites
 
@@ -103,26 +108,26 @@ architecture-beta
 
 ### Deployment to AWS
 
-1.  **Clone the repository**
+1.  Clone the repository
 
     ```bash
     git clone https://github.com/gontzalm/rag-builder.git
     cd rag-builder
     ```
 
-1.  **Install dependencies**
+1.  Install dependencies
 
     ```bash
     uv sync
     ```
 
-1.  **Bootstrap the CDK environment (if you haven't already)**
+1.  Bootstrap the CDK environment (if you haven't already)
 
     ```bash
     cdk bootstrap
     ```
 
-1.  **Deploy the stack**
+1.  Deploy the stack
 
     ```bash
     cdk deploy
@@ -164,7 +169,7 @@ while connecting to the deployed AWS resources.
     This will start a local server, and you can access the application at
     `http://localhost:8000`.
 
-## Technology Stack
+## 🛠️ Technology Stack
 
 - **Infrastructure as Code:** [AWS CDK](https://aws.amazon.com/cdk/)
 - **Frontend:** [Chainlit](https://docs.chainlit.io/get-started/overview)
@@ -172,14 +177,4 @@ while connecting to the deployed AWS resources.
 - **AI/ML:** [LangChain](https://www.langchain.com/),
   [Amazon Bedrock](https://aws.amazon.com/bedrock/),
   [LanceDB](https://lancedb.github.io/lancedb/)
-- **AWS Services:**
-  - Amazon S3
-  - Amazon DynamoDB
-  - Amazon SQS
-  - AWS Lambda
-  - AWS Fargate
-  - Amazon API Gateway
-  - Amazon Cognito
-  - Amazon CloudFront
-  - Amazon EventBridge
 - **Package Management:** [uv](https://github.com/astral-sh/uv)
