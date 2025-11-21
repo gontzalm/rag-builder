@@ -34,10 +34,17 @@ class Conversation(TypedDict):
     messages: list[HumanMessage | AIMessage]
 
 
+def is_vector_store_empty() -> bool:
+    return VECTOR_STORE.get_table("vectorstore") is None
+
+
 @tool(response_format="content_and_artifact")
-def retrieve_context(query: str) -> tuple[str, list[Document]]:
+async def retrieve_context(query: str) -> tuple[str, list[Document] | None]:
     """Retrieves information to help answer a query."""
-    retrieved_docs = VECTOR_STORE.similarity_search(query, k=2)
+    if is_vector_store_empty():
+        return "The vector store is empty", None
+
+    retrieved_docs = await VECTOR_STORE.asimilarity_search(query, k=2)
     serialized = "\n\n".join(
         (f"Source: {doc.metadata}\nContent: {doc.page_content}")  # pyright: ignore[reportUnknownMemberType]
         for doc in retrieved_docs
