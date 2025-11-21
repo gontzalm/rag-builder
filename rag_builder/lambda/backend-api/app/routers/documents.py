@@ -80,6 +80,7 @@ class UpdateDocumentLoad(BaseModel):
 
 
 class CreateDocumentRequest(BaseModel):
+    document_id: str
     title: str
     url: HttpUrl
 
@@ -195,11 +196,9 @@ async def update_load(load_id: str, update_values: UpdateDocumentLoad) -> None:
 
 @router.post("", status_code=status.HTTP_201_CREATED)
 async def create_document(doc: CreateDocumentRequest) -> None:
-    document_id = uuid.uuid4()
-
     document_table.put_item(  # pyright: ignore[reportUnknownMemberType]
         Item=Document(
-            document_id=document_id,
+            document_id=uuid.UUID(doc.document_id),
             title=doc.title,
             url=doc.url,
             added_at=datetime.now(tz=UTC),

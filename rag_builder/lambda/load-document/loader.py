@@ -91,7 +91,12 @@ class LanceDbLoader(ABC):
 
     def _add_document(self) -> None:
         _ = self._http.post(
-            "/documents", json={"title": self._doc_title, "url": self.url}
+            "/documents",
+            json={
+                "document_id": self.load_id,
+                "title": self._doc_title,
+                "url": self.url,
+            },
         )
 
     def load_document(self) -> None:
