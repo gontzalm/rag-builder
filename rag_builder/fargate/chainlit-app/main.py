@@ -29,25 +29,48 @@ async def main(message: cl.Message):
 
     agent = cl.user_session.get("agent")  # pyright: ignore[reportUnknownMemberType, reportUnknownVariableType]
 
-    async for token, metadata in agent.astream(  # pyright: ignore[reportUnknownMemberType, reportOptionalMemberAccess, reportUnknownVariableType]
+    in_thinking_step = False
+
+    async for content, metadata in agent.astream(  # pyright: ignore[reportUnknownMemberType, reportOptionalMemberAccess, reportUnknownVariableType]
         {"messages": [HumanMessage(message.content)]},
         config={"configurable": {"thread_id": message.thread_id}},
         stream_mode="messages",
     ):
-        if not token.content_blocks:  # pyright: ignore[reportUnknownMemberType]
+        try:
+            token = content.content_blocks[0]["text"]  # pyright: ignore[reportUnknownVariableType, reportUnknownMemberType]
+        except (IndexError, KeyError):
             continue
 
-        match metadata["langgraph_node"]:
+        match metadata["langgraph_node"]:  # pyright: ignore[reportMatchNotExhaustive]
             case "tools":
-                with cl.Step(name="retrieve_context", type="tool") as step:
-                    step.output = f"{token.content_blocks[0]['text'][:500]}\n...\n Output truncated"  # pyright: ignore[reportUnknownMemberType]
-            case "model":
-                content_block = token.content_blocks[0]  # pyright: ignore[reportUnknownVariableType, reportUnknownMemberType]
-                if content_block["type"] == "text":
-                    await answer.stream_token(content_block["text"])  # pyright: ignore[reportUnknownArgumentType]
+                async with cl.Step(name="retrieve_context", type="tool") as step:
+                    step.output = f"{token[:500]}\n...\n Output truncated"
 
-            case _:  # pyright: ignore[reportUnknownVariableType]
-                pass
+            case "model":
+                if token == "<thinking":
+                    # Entered thinking step
+                    in_thinking_step = True
+                    about_to_end_thinking = False
+
+                    async with cl.Step(name="thinking", type="llm") as thinking_step:
+                        continue
+
+                if not in_thinking_step:
+                    await answer.stream_token(token)  # pyright: ignore[reportUnknownArgumentType]
+                    continue
+
+                match token.rstrip("\n"):  # pyright: ignore[reportUnknownMemberType]
+                    case " </" | "thinking":
+                        about_to_end_thinking = True
+                        continue
+
+                    case ">":
+                        if about_to_end_thinking:  # pyright: ignore[reportPossiblyUnboundVariable]
+                            in_thinking_step = False
+                        continue
+
+                    case thinking_token:  # pyright: ignore[reportUnknownVariableType]
+                        _ = await thinking_step.stream_token(thinking_token)  # pyright: ignore[reportPossiblyUnboundVariable, reportUnknownArgumentType]
 
     _ = await answer.send()
 
