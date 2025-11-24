@@ -6,6 +6,10 @@ from PDFs and websites and then ask questions about it. The project is built
 with Python, AWS CDK, and LangChain, and it serves as a powerful demonstration
 of how to build production-ready GenAI applications on AWS.
 
+## 🎥 Demo
+
+https://github.com/user-attachments/assets/fc024d19-2359-4a75-8e80-1e1e06738bff
+
 ## 🏛️ Architecture
 
 The application is built using a serverless-first architecture on AWS, designed
