@@ -20,6 +20,8 @@ BASE_DIR = Path(__file__).parent
 PIP_CACHE_DIR = BASE_DIR.parent / ".cdk-pip-cache"
 PIP_CACHE_DIR.mkdir(exist_ok=True)
 
+PYTHON_EXCLUDE_PATTERNS = (".venv", "__pycache__", "tests")
+
 
 class Endpoint(TypedDict):
     path: str
@@ -50,13 +52,13 @@ def compile_uv_lock(lambda_path: Path) -> None:
 @final
 class PythonFunction(Construct):
     _DOCKERFILE_TEMPLATE = Template(
-        textwrap.dedent("""\
-            FROM public.ecr.aws/lambda/python:${python_version}
+        textwrap.dedent(f"""\
+            FROM public.ecr.aws/lambda/python:${{python_version}}
 
-            COPY requirements.txt ${LAMBDA_TASK_ROOT}
+            COPY requirements.txt ${{LAMBDA_TASK_ROOT}}
             RUN pip install -r requirements.txt
 
-            COPY --exclude=.venv --exclude=__pycache__  . ${LAMBDA_TASK_ROOT}
+            COPY {" ".join(f"--exclude={p}" for p in PYTHON_EXCLUDE_PATTERNS)} . ${{LAMBDA_TASK_ROOT}}
         """)
     )
 
@@ -124,7 +126,7 @@ class PythonFunction(Construct):
                             " && ".join(
                                 [
                                     "pip install -r requirements.txt -t /asset-output",
-                                    "rsync -a --exclude .venv --exclude __pycache__ . /asset-output",
+                                    f"rsync -a {' '.join(f'--exclude {p}' for p in PYTHON_EXCLUDE_PATTERNS)} . /asset-output",
                                 ]
                             ),
                         ],
@@ -197,7 +199,7 @@ class FastApiLambdaFunction(Construct):
                                 f"echo -e '{self._RUN_SH_CONTENT}' > /asset-output/run.sh",
                                 "chmod +x /asset-output/run.sh",
                                 "pip install -r requirements.txt -t /asset-output",
-                                "rsync -a --exclude .venv --exclude __pycache__ . /asset-output",
+                                f"rsync -a {' '.join(f'--exclude {p}' for p in PYTHON_EXCLUDE_PATTERNS)} . /asset-output",
                             ]
                         ),
                     ],
