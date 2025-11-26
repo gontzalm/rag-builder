@@ -10,3 +10,6 @@ cdk.out
 # other
 .env
 .coverage
+
+# generated
+rag_builder/lambda/*/Dockerfile
