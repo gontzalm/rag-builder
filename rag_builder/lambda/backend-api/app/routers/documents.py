@@ -18,10 +18,11 @@ DOCUMENT_LOAD_QUEUE = os.environ["DOCUMENT_LOAD_QUEUE"]
 DOCUMENT_DELETION_QUEUE = os.environ["DOCUMENT_DELETION_QUEUE"]
 
 sqs = boto3.client("sqs")  # pyright: ignore[reportUnknownMemberType, reportUnknownVariableType]
-dynamodb = boto3.client("dynamodb")  # pyright: ignore[reportUnknownVariableType, reportUnknownMemberType]
+dynamodb = boto3.resource("dynamodb", endpoint_url=os.getenv("DYNAMODB_ENDPOINT_URL"))  # pyright: ignore[reportUnknownMemberType]
+dynamodb_exceptions = dynamodb.meta.client.exceptions  # pyright: ignore[reportUnknownMemberType, reportOptionalMemberAccess, reportUnknownVariableType]
 
-document_table = boto3.resource("dynamodb").Table(DOCUMENT_TABLE)  # pyright: ignore[reportUnknownVariableType, reportUnknownMemberType, reportAttributeAccessIssue]
-document_load_history_table = boto3.resource("dynamodb").Table(  # pyright: ignore[reportUnknownMemberType, reportUnknownVariableType, reportAttributeAccessIssue]
+document_table = dynamodb.Table(DOCUMENT_TABLE)  # pyright: ignore[reportUnknownVariableType, reportUnknownMemberType, reportAttributeAccessIssue]
+document_load_history_table = dynamodb.Table(  # pyright: ignore[reportUnknownMemberType, reportUnknownVariableType, reportAttributeAccessIssue]
     DOCUMENT_LOAD_HISTORY_TABLE
 )
 
@@ -181,7 +182,7 @@ async def update_load(load_id: str, update_values: UpdateDocumentLoad) -> None:
             ExpressionAttributeValues={f":{k}": v for k, v in update_data.items()},  # pyright: ignore[reportAny]
             ConditionExpression=Attr("load_id").exists(),
         )
-    except dynamodb.exceptions.ConditionalCheckFailedException:  # pyright: ignore[reportUnknownMemberType]
+    except dynamodb_exceptions.ConditionalCheckFailedException:  # pyright: ignore[reportUnknownMemberType]
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail=f"Document load ID '{load_id}' not found",
@@ -206,7 +207,7 @@ async def create_document(doc: CreateDocumentRequest) -> None:
     )
     logger.info(
         "Inserted document ID '%s' into DynamoDB table '%s'",
-        document_id,
+        doc.document_id,
         document_table.table_name,  # pyright: ignore[reportUnknownArgumentType, reportUnknownMemberType]
     )
 
@@ -241,7 +242,7 @@ async def delete_document(document_id: str) -> None:
             Key={"document_id": document_id},
             ConditionExpression=Attr("document_id").exists(),
         )
-    except dynamodb.exceptions.ConditionalCheckFailedException:  # pyright: ignore[reportUnknownMemberType]
+    except dynamodb_exceptions.ConditionalCheckFailedException:  # pyright: ignore[reportUnknownMemberType]
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail=f"Document ID '{document_id}' not found",

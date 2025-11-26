@@ -1,0 +1,20 @@
+#!/bin/bash
+set -euo pipefail
+
+DDB_CONTAINER="rag-builder-backend-api-test-db"
+DOCKER_IMAGE="amazon/dynamodb-local"
+
+echo "[INFO] Starting DynamoDB container"
+docker run --rm -d -p 8000:8000 --name ${DDB_CONTAINER} ${DOCKER_IMAGE} > /dev/null
+sleep 2
+
+echo "[INFO] Running tests"
+uv run coverage run || true
+
+echo "[INFO] Creating coverage report"
+uv run coverage report
+
+echo "[INFO] Stoping DynamoDB container"
+docker stop ${DDB_CONTAINER} > /dev/null
+
+echo "[INFO] Tests finished"
