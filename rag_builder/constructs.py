@@ -38,6 +38,7 @@ def compile_uv_lock(lambda_path: Path) -> None:
             [
                 "uv",
                 "export",
+                "--no-dev",
                 "-o",
                 "requirements.txt",
             ],
