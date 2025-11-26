@@ -10,11 +10,11 @@
 ## Agent & Core Logic
 
 - [x] Implement conversational memory for the agent
-- [ ] Explore advanced retrieval strategies:
+- [ ] Implement advanced retrieval strategies
   - [ ] Dynamic `k` for document retrieval
   - [ ] Re-ranking of retrieved documents
   - [ ] Hybrid search (keyword + semantic)
-- [ ] Develop more advanced agentic logic:
+- [ ] Develop more advanced agentic logic
   - [ ] Self-correction mechanisms for responses
   - [ ] Add MCP tools
 
@@ -27,4 +27,5 @@
 
 - [ ] Add comprehensive unit and integration tests
 - [ ] Implement an automated CI/CD pipeline
-- [ ] Set up detailed cost monitoring and alerts
+- [ ] Integrate evaluation with RAGAS/DeepEval
+- [ ] Integrate LangSmith tracing
