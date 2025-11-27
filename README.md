@@ -97,8 +97,14 @@ architecture-beta
   store document metadata and Chainlit conversation history.
 
 - **Scheduled Tasks:** A weekly scheduled Lambda function, triggered by
-  [Amazon EventBridge](https://aws.amazon.com/eventbridge/), optimizes the
-  LanceDB vector store to maintain performance.
+  [Amazon EventBridge Scheduler](https://aws.amazon.com/eventbridge/scheduler/),
+  optimizes the LanceDB vector store to maintain performance.
+
+  Optimization covers three operations:
+  - _Compaction_: Merges small files into larger ones
+  - _Prune_: Removes old versions of the dataset
+  - _Index_: Optimizes the indices, adding new data to existing indices
+    (incremental indexing)
 
 ## 🚀 Getting Started
 
