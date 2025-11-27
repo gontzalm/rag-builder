@@ -10,10 +10,9 @@
 ## Agent & Core Logic
 
 - [x] Implement conversational memory for the agent
-- [ ] Implement advanced retrieval strategies
-  - [ ] Dynamic `k` for document retrieval
-  - [ ] Re-ranking of retrieved documents
-  - [ ] Hybrid search (keyword + semantic)
+- [x] Implement advanced retrieval strategies
+  - [x] Re-ranking of retrieved documents
+  - [x] Hybrid search (keyword + semantic)
 - [ ] Develop more advanced agentic logic
   - [ ] Self-correction mechanisms for responses
   - [ ] Add MCP tools
