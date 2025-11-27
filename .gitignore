@@ -13,3 +13,4 @@ cdk.out
 
 # generated
 rag_builder/lambda/*/Dockerfile
+rag_builder/lambda/*/requirements.txt
