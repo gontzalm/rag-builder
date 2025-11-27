@@ -247,113 +247,138 @@ class RagBuilderStack(cdk.Stack):
         )
 
         # FRONTEND APP
-        # Cloudfront -> ALB -> ECS Service (Fargate)
-        chainlit_app = BASE_DIR / "fargate" / "chainlit-app"
-        chainlit_app_fargate = ecs_patterns.ApplicationLoadBalancedFargateService(
-            self,
-            "chainlit-app-fargate",
-            task_image_options=ecs_patterns.ApplicationLoadBalancedTaskImageOptions(
-                image=ecs.ContainerImage.from_asset(str(chainlit_app)),
-                container_port=8000,
-            ),
-            cpu=1024,
-            memory_limit_mib=2048,
-            circuit_breaker=ecs.DeploymentCircuitBreaker(rollback=True),
-            listener_port=8000,
-            open_listener=False,
-        )
-        chainlit_app_fargate.load_balancer.connections.allow_from(
-            ec2.PrefixList.from_lookup(
+        deploy_chainlit: str | None = self.node.try_get_context("deploy_chainlit")  # pyright: ignore[reportAny]
+        if deploy_chainlit is None or deploy_chainlit.lower() == "true":
+            # Cloudfront -> ALB -> ECS Service (Fargate)
+            chainlit_app = BASE_DIR / "fargate" / "chainlit-app"
+            chainlit_app_fargate = ecs_patterns.ApplicationLoadBalancedFargateService(
                 self,
-                "cloudfront-prefix-list",
-                prefix_list_name="com.amazonaws.global.cloudfront.origin-facing",
-            ),
-            ec2.Port.tcp(8000),
-        )
-        _ = vector_store_bucket.grant_read(
-            chainlit_app_fargate.task_definition.task_role
-        )
-        _ = chainlit_bucket.grant_read_write(
-            chainlit_app_fargate.task_definition.task_role
-        )
-        _ = chainlit_table.grant_read_write_data(
-            chainlit_app_fargate.task_definition.task_role
-        )
-        _ = chainlit_app_fargate.task_definition.add_to_task_role_policy(
-            iam.PolicyStatement(
-                actions=["bedrock:InvokeModel"],
-                resources=[embeddings_model.model_arn],
-            )
-        )
-        _ = chainlit_app_fargate.task_definition.add_to_task_role_policy(
-            iam.PolicyStatement(
-                actions=["bedrock:InvokeModelWithResponseStream"],
-                resources=[agent_model.model_arn],
-            ),
-        )
-
-        # Add a Cloudfront distribution in front of the ALB in order to use Cognito OAuth (it needs HTTPS)
-        chainlit_app_distribution = cloudfront.Distribution(
-            self,
-            "chainlit-app-distribution",
-            default_behavior=cloudfront.BehaviorOptions(
-                origin=cloudfront_origins.LoadBalancerV2Origin(
-                    chainlit_app_fargate.load_balancer,
-                    protocol_policy=cloudfront.OriginProtocolPolicy.HTTP_ONLY,
-                    http_port=8000,
+                "chainlit-app-fargate",
+                task_image_options=ecs_patterns.ApplicationLoadBalancedTaskImageOptions(
+                    image=ecs.ContainerImage.from_asset(str(chainlit_app)),
+                    container_port=8000,
                 ),
-                viewer_protocol_policy=cloudfront.ViewerProtocolPolicy.REDIRECT_TO_HTTPS,
-                allowed_methods=cloudfront.AllowedMethods.ALLOW_ALL,  # pyright: ignore[reportAny]
-                cache_policy=cloudfront.CachePolicy.CACHING_DISABLED,  # pyright: ignore[reportAny]
-                origin_request_policy=cloudfront.OriginRequestPolicy.ALL_VIEWER_EXCEPT_HOST_HEADER,  # pyright: ignore[reportAny]
-            ),
-        )
-        _ = cdk.CfnOutput(
-            self,
-            "chainlit-app-url-output",
-            value=f"https://{chainlit_app_distribution.domain_name}",
-        )
+                cpu=1024,
+                memory_limit_mib=2048,
+                circuit_breaker=ecs.DeploymentCircuitBreaker(rollback=True),
+                listener_port=8000,
+                open_listener=False,
+            )
+            chainlit_app_fargate.load_balancer.connections.allow_from(
+                ec2.PrefixList.from_lookup(
+                    self,
+                    "cloudfront-prefix-list",
+                    prefix_list_name="com.amazonaws.global.cloudfront.origin-facing",
+                ),
+                ec2.Port.tcp(8000),
+            )
+            _ = vector_store_bucket.grant_read(
+                chainlit_app_fargate.task_definition.task_role
+            )
+            _ = chainlit_bucket.grant_read_write(
+                chainlit_app_fargate.task_definition.task_role
+            )
+            _ = chainlit_table.grant_read_write_data(
+                chainlit_app_fargate.task_definition.task_role
+            )
+            _ = chainlit_app_fargate.task_definition.add_to_task_role_policy(
+                iam.PolicyStatement(
+                    actions=["bedrock:InvokeModel"],
+                    resources=[embeddings_model.model_arn],
+                )
+            )
+            _ = chainlit_app_fargate.task_definition.add_to_task_role_policy(
+                iam.PolicyStatement(
+                    actions=["bedrock:InvokeModelWithResponseStream"],
+                    resources=[agent_model.model_arn],
+                ),
+            )
 
-        chainlit_client = user_pool.add_client(
-            "chainlit-app-client",
-            generate_secret=True,
-            o_auth=cognito.OAuthSettings(
-                scopes=[
-                    cognito.OAuthScope.OPENID,  # pyright: ignore[reportAny]
-                    cognito.OAuthScope.PROFILE,  # pyright: ignore[reportAny]
-                    cognito.OAuthScope.EMAIL,  # pyright: ignore[reportAny]
-                    oauth_scope,
-                ],
-                callback_urls=[
-                    "http://localhost:8000/auth/oauth/aws-cognito/callback",
-                    f"https://{chainlit_app_distribution.domain_name}/auth/oauth/aws-cognito/callback",
-                ],
-                logout_urls=[
-                    "http://localhost:8000/logout",
-                    f"https://{chainlit_app_distribution.domain_name}/logout",
-                ],
-            ),
-        )
+            # Add a Cloudfront distribution in front of the ALB in order to use Cognito OAuth (it needs HTTPS)
+            chainlit_app_distribution = cloudfront.Distribution(
+                self,
+                "chainlit-app-distribution",
+                default_behavior=cloudfront.BehaviorOptions(
+                    origin=cloudfront_origins.LoadBalancerV2Origin(
+                        chainlit_app_fargate.load_balancer,
+                        protocol_policy=cloudfront.OriginProtocolPolicy.HTTP_ONLY,
+                        http_port=8000,
+                    ),
+                    viewer_protocol_policy=cloudfront.ViewerProtocolPolicy.REDIRECT_TO_HTTPS,
+                    allowed_methods=cloudfront.AllowedMethods.ALLOW_ALL,  # pyright: ignore[reportAny]
+                    cache_policy=cloudfront.CachePolicy.CACHING_DISABLED,  # pyright: ignore[reportAny]
+                    origin_request_policy=cloudfront.OriginRequestPolicy.ALL_VIEWER_EXCEPT_HOST_HEADER,  # pyright: ignore[reportAny]
+                ),
+            )
+            _ = cdk.CfnOutput(
+                self,
+                "chainlit-app-url-output",
+                value=f"https://{chainlit_app_distribution.domain_name}",
+            )
 
-        for k, v in {
-            # Auth
-            "CHAINLIT_URL": f"https://{chainlit_app_distribution.domain_name}",
-            "CHAINLIT_AUTH_SECRET": secrets.token_hex(64),
-            "OAUTH_COGNITO_CLIENT_ID": chainlit_client.user_pool_client_id,
-            "OAUTH_COGNITO_CLIENT_SECRET": chainlit_client.user_pool_client_secret.unsafe_unwrap(),
-            "OAUTH_COGNITO_DOMAIN": user_pool_domain.base_url().removeprefix(
-                "https://"
-            ),
-            "OAUTH_COGNITO_SCOPE": f"openid profile email {oauth_scope.scope_name}",
-            # AWS Resources
-            "CHAINLIT_BUCKET": chainlit_bucket.bucket_name,
-            "CHAINLIT_TABLE": chainlit_table.table_name,
-            "VECTOR_STORE_BUCKET": vector_store_bucket.bucket_name,
-            "EMBEDDINGS_MODEL": embeddings_model.model_arn.partition("/")[2],
-            "AGENT_MODEL": agent_model.model_arn.partition("/")[2],
-            "BACKEND_API_URL": backend_api.apigw.url,
-        }.items():
-            chainlit_app_fargate.task_definition.default_container.add_environment(k, v)  # pyright: ignore[reportOptionalMemberAccess]
+            chainlit_client = user_pool.add_client(
+                "chainlit-app-client",
+                generate_secret=True,
+                o_auth=cognito.OAuthSettings(
+                    scopes=[
+                        cognito.OAuthScope.OPENID,  # pyright: ignore[reportAny]
+                        cognito.OAuthScope.PROFILE,  # pyright: ignore[reportAny]
+                        cognito.OAuthScope.EMAIL,  # pyright: ignore[reportAny]
+                        oauth_scope,
+                    ],
+                    callback_urls=[
+                        "http://localhost:8000/auth/oauth/aws-cognito/callback",
+                        f"https://{chainlit_app_distribution.domain_name}/auth/oauth/aws-cognito/callback",
+                    ],
+                    logout_urls=[
+                        "http://localhost:8000/logout",
+                        f"https://{chainlit_app_distribution.domain_name}/logout",
+                    ],
+                ),
+            )
+
+            for k, v in {
+                # Auth
+                "CHAINLIT_URL": f"https://{chainlit_app_distribution.domain_name}",
+                "CHAINLIT_AUTH_SECRET": secrets.token_hex(64),
+                "OAUTH_COGNITO_CLIENT_ID": chainlit_client.user_pool_client_id,
+                "OAUTH_COGNITO_CLIENT_SECRET": chainlit_client.user_pool_client_secret.unsafe_unwrap(),
+                "OAUTH_COGNITO_DOMAIN": user_pool_domain.base_url().removeprefix(
+                    "https://"
+                ),
+                "OAUTH_COGNITO_SCOPE": f"openid profile email {oauth_scope.scope_name}",
+                # AWS Resources
+                "CHAINLIT_BUCKET": chainlit_bucket.bucket_name,
+                "CHAINLIT_TABLE": chainlit_table.table_name,
+                "VECTOR_STORE_BUCKET": vector_store_bucket.bucket_name,
+                "EMBEDDINGS_MODEL": embeddings_model.model_arn.partition("/")[2],
+                "AGENT_MODEL": agent_model.model_arn.partition("/")[2],
+                "BACKEND_API_URL": backend_api.apigw.url,
+            }.items():
+                chainlit_app_fargate.task_definition.default_container.add_environment(  # pyright: ignore[reportOptionalMemberAccess]
+                    k, v
+                )
+
+        else:
+            # Cognito client for local development
+            chainlit_client = user_pool.add_client(
+                "chainlit-app-client",
+                generate_secret=True,
+                o_auth=cognito.OAuthSettings(
+                    scopes=[
+                        cognito.OAuthScope.OPENID,  # pyright: ignore[reportAny]
+                        cognito.OAuthScope.PROFILE,  # pyright: ignore[reportAny]
+                        cognito.OAuthScope.EMAIL,  # pyright: ignore[reportAny]
+                        oauth_scope,
+                    ],
+                    callback_urls=[
+                        "http://localhost:8000/auth/oauth/aws-cognito/callback",
+                    ],
+                    logout_urls=[
+                        "http://localhost:8000/logout",
+                    ],
+                ),
+            )
 
         _ = cdk.CfnOutput(
             self,
