@@ -3,7 +3,7 @@ from chainlit.types import ThreadDict
 from langchain_core.messages import AIMessage, HumanMessage
 
 from app.actions import ACTIONS
-from app.agent import MAX_MEMORY_WINDOW, setup_agent
+from app.agent import setup_agent
 from app.auth import setup_oauth
 from app.data_persistence import setup_data_persistence
 
@@ -83,10 +83,5 @@ async def resume(thread: ThreadDict):
         else AIMessage(step["output"])  # pyright: ignore[reportTypedDictNotRequiredAccess]
         for step in thread["steps"]
         if step["type"] in ("user_message", "assistant_message")  # pyright: ignore[reportTypedDictNotRequiredAccess]
-    ][-MAX_MEMORY_WINDOW:]
-
-    # The first message must be a HumanMessage in order to avoid a Bedrock validation exception
-    if not isinstance(messages[0], HumanMessage):
-        _ = messages.pop(0)
-
+    ]
     setup_agent({"messages": messages, "thread_id": thread["id"]})

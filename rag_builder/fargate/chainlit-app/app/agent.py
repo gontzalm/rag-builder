@@ -85,8 +85,7 @@ def delete_messages(state: AgentState, _: Runtime) -> dict[str, list[Any]] | Non
             messages_to_delete.append(message)
             continue
 
-        # Keep deleting messages until the first message is a human message in order to
-        # avoid a Bedrock validation exception
+        # The first message must be a HumanMessage in order to avoid a Bedrock validation exception
         if message.type != "human":
             messages_to_delete.append(message)
         else:
@@ -115,9 +114,15 @@ def setup_agent(conversation: Conversation | None = None) -> None:
     )
 
     if conversation is not None:
+        messages = conversation["messages"][-MAX_MEMORY_WINDOW:]
+
+        # The first message must be a HumanMessage in order to avoid a Bedrock validation exception
+        while not isinstance(messages[0], HumanMessage):
+            _ = messages.pop(0)
+
         _ = agent.update_state(
             {"configurable": {"thread_id": conversation["thread_id"]}},
-            {"messages": conversation["messages"]},
+            {"messages": messages},
         )
 
     cl.user_session.set("agent", agent)  # pyright: ignore[reportUnknownMemberType]
