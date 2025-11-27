@@ -157,6 +157,12 @@ This ensures a robust retrieval process that captures both conceptually similar 
     output the URL of the Chainlit application and a `.env` file for local
     testing.
 
+    **Tip:** To save costs, speed up deployments, or if you're developing the Chainlit UI locally, you can disable its deployment (Fargate service, Load Balancer, and CloudFront distribution) by using the `deploy_chainlit` context value:
+
+    ```bash
+    cdk deploy -c deploy_chainlit=false
+    ```
+
 ### Local Development and Testing
 
 For a faster development cycle, you can run the Chainlit application locally
