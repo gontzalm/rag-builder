@@ -3,6 +3,8 @@ from pathlib import Path
 from typing import Any, TypedDict
 
 import chainlit as cl
+import lancedb  # pyright: ignore[reportMissingTypeStubs]
+from lancedb.rerankers import RRFReranker  # pyright: ignore[reportMissingTypeStubs]
 from langchain.agents import (
     AgentState,
     create_agent,  # pyright: ignore[reportUnknownVariableType]
@@ -11,21 +13,14 @@ from langchain.agents.middleware import before_model
 from langchain.messages import AIMessage, AnyMessage, HumanMessage, RemoveMessage
 from langchain.tools import tool  # pyright: ignore[reportUnknownVariableType]
 from langchain_aws import BedrockEmbeddings, ChatBedrockConverse
-from langchain_community.vectorstores import LanceDB
-from langchain_core.documents import Document
 from langgraph.checkpoint.memory import InMemorySaver
 from langgraph.runtime import Runtime
 
 _VECTOR_STORE_BUCKET = os.environ["VECTOR_STORE_BUCKET"]
-_EMBEDDINGS_MODEL = os.environ["EMBEDDINGS_MODEL"]
-_AGENT_MODEL = os.environ["AGENT_MODEL"]
 
 MAX_MEMORY_WINDOW = 10
-VECTOR_STORE = LanceDB(
-    uri=f"s3://{_VECTOR_STORE_BUCKET}",
-    embedding=BedrockEmbeddings(model_id=_EMBEDDINGS_MODEL),
-)
-MODEL = ChatBedrockConverse(model=_AGENT_MODEL, temperature=0.5)
+EMBEDDING_MODEL = BedrockEmbeddings(model_id=os.environ["EMBEDDINGS_MODEL"])
+AGENT_MODEL = ChatBedrockConverse(model=os.environ["AGENT_MODEL"], temperature=0.5)
 SYSTEM_PROMPT = Path("agent_instructions.md")
 
 
@@ -34,22 +29,44 @@ class Conversation(TypedDict):
     messages: list[HumanMessage | AIMessage]
 
 
-def is_vector_store_empty() -> bool:
-    return VECTOR_STORE.get_table("vectorstore") is None
+async def is_vector_store_empty(db: lancedb.AsyncConnection) -> bool:
+    try:
+        _ = await db.open_table("vectorstore")
+    except ValueError:
+        return True
+    else:
+        return False
 
 
-@tool(response_format="content_and_artifact")
-async def retrieve_context(query: str) -> tuple[str, list[Document] | None]:
+@tool
+async def retrieve_context(query: str) -> str:
     """Retrieves information to help answer a query."""
-    if is_vector_store_empty():
-        return "The vector store is empty", None
+    db = await lancedb.connect_async(f"s3://{_VECTOR_STORE_BUCKET}")
 
-    retrieved_docs = await VECTOR_STORE.asimilarity_search(query, k=2)
-    serialized = "\n\n".join(
-        (f"Source: {doc.metadata}\nContent: {doc.page_content}")  # pyright: ignore[reportUnknownMemberType]
-        for doc in retrieved_docs
+    if await is_vector_store_empty(db):
+        return "The vector store is empty."
+
+    # Hybrid search via `langchain_community.vectorstores.LanceDB` is currently not working
+    # retrieved_docs = await VECTOR_STORE.asimilarity_search(query, query_type="hybrid")
+
+    # Workaround: Hybrid search directly via LancedDB
+    table = await db.open_table("vectorstore")
+
+    retrieved_docs = await (  # pyright: ignore[reportUnknownVariableType]
+        table.query()  # pyright: ignore[reportUnknownMemberType]
+        # Vector search (should use an index for databases with >100k vectors)
+        .nearest_to(await EMBEDDING_MODEL.aembed_query(query))
+        # + Keyword search (needs an FTS index)
+        .nearest_to_text(query)
+        .rerank(reranker=RRFReranker())
+        .limit(10)
+        .select(["metadata", "text"])
+        .to_list()
     )
-    return serialized, retrieved_docs
+    return "\n--\n".join(
+        f"Source: {doc['metadata']}\nContent: {doc['text']}"
+        for doc in retrieved_docs  # pyright: ignore[reportUnknownVariableType]
+    )
 
 
 @before_model  # pyright: ignore[reportCallIssue, reportArgumentType, reportUntypedFunctionDecorator]
@@ -90,7 +107,7 @@ def setup_agent(conversation: Conversation | None = None) -> None:
         conversation: A past conversation to restore.
     """
     agent = create_agent(  # pyright: ignore[reportUnknownVariableType]
-        MODEL,
+        AGENT_MODEL,
         [retrieve_context],
         system_prompt=SYSTEM_PROMPT.read_text(),
         middleware=[delete_messages],  # pyright: ignore[reportArgumentType]

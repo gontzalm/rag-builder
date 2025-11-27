@@ -7,6 +7,7 @@ from pathlib import Path
 from typing import Self, override
 
 from httpx import Client
+from lancedb import DBConnection
 from langchain_aws import BedrockEmbeddings
 from langchain_community.document_loaders import PyPDFLoader
 from langchain_community.vectorstores import LanceDB
@@ -23,6 +24,8 @@ class LanceDbLoader(ABC):
     _VECTOR_STORE_BUCKET: str = os.environ["VECTOR_STORE_BUCKET"]
     _EMBEDDINGS_MODEL: str = os.environ["EMBEDDINGS_MODEL"]
     _BACKEND_API_URL: str = os.environ["BACKEND_API_URL"]
+    _DEFAULT_TABLE: str = "vectorstore"
+    _DEFAULT_TEXT_COLUMN: str = "text"
 
     def __init__(self, load_id: str, url: str) -> None:
         self._http: Client = Client(base_url=self._BACKEND_API_URL, auth=AwsBotoAuth())
@@ -42,6 +45,10 @@ class LanceDbLoader(ABC):
             uri=f"s3://{self._VECTOR_STORE_BUCKET}",
             embedding=BedrockEmbeddings(model_id=self._EMBEDDINGS_MODEL),
         )
+
+    @cached_property
+    def _db(self) -> DBConnection:
+        return self._vector_store._connection  # pyright: ignore[reportReturnType, reportPrivateUsage]
 
     @cached_property
     @abstractmethod
@@ -70,6 +77,13 @@ class LanceDbLoader(ABC):
     def _add_extra_metadata(self) -> None:
         for doc in self._documents:
             doc.metadata.update(self._extra_metadata)  # pyright: ignore[reportUnknownMemberType]
+
+    def _create_fts_index_if_not_exists(self) -> None:
+        table = self._db.open_table(self._DEFAULT_TABLE)
+
+        if table.index_stats(f"{self._DEFAULT_TEXT_COLUMN}_idx") is None:
+            table.create_fts_index(self._DEFAULT_TEXT_COLUMN)
+            table.wait_for_index(f"{self._DEFAULT_TEXT_COLUMN}_idx")
 
     def _mark_in_progress(self) -> None:
         _ = self._http.patch(
@@ -109,6 +123,7 @@ class LanceDbLoader(ABC):
                 self._documents,
                 ids=[f"{self.load_id}-{i:04d}" for i in range(len(self._documents))],
             )
+            self._create_fts_index_if_not_exists()
         except Exception as e:
             self._mark_failed(e)
             logger.exception("Document load ID '%s' failed", self.load_id)

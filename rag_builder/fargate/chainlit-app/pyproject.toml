@@ -6,7 +6,6 @@ dependencies = [
     "chainlit>=2.9.0",
     "httpx>=0.28.1",
     "lancedb>=0.25.3",
-    "langchain-community>=0.4.1",
     "langchain[aws]>=1.0.5",
     "pandas>=2.3.3",
 ]
