@@ -55,7 +55,7 @@ wheels = [
 
 [[package]]
 name = "aws-cdk-lib"
-version = "2.225.0"
+version = "2.230.0"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "aws-cdk-asset-awscli-v1" },
@@ -66,9 +66,9 @@ dependencies = [
     { name = "publication" },
     { name = "typeguard" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/45/26/e935e2537abb50ed4e04ab4f51c975086b717486a0bec82000281b296337/aws_cdk_lib-2.225.0.tar.gz", hash = "sha256:d9d357c94384d52c463d52b979bd7c5fa7971ea51ef6e21724230506d748e895", size = 45266811, upload-time = "2025-11-17T17:13:21.599Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/c2/32/1ad3c9b8df1b46335bdc28db6dcd86ad93a7976116425f943e26397bca22/aws_cdk_lib-2.230.0.tar.gz", hash = "sha256:288881f38f89ac4a8943420d79f4a8054ee1667b4eaa201dce5aef2a5a385434", size = 45965265, upload-time = "2025-11-26T20:01:23.957Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/0b/81/5349707e183afb77aaff9d39eeee28e955a24fb8a086b34bf15bab1eea1c/aws_cdk_lib-2.225.0-py3-none-any.whl", hash = "sha256:de1b6bea107fd3cc93767007733bf3d78f03698df83e45262a1c56edcbdbdb8e", size = 45910864, upload-time = "2025-11-17T17:12:48.227Z" },
+    { url = "https://files.pythonhosted.org/packages/b5/9e/a6d85ea13e77f91d2ce457e6cdaf6ca4d6ba4646cd3edc05d5e08bbf4f15/aws_cdk_lib-2.230.0-py3-none-any.whl", hash = "sha256:ebca6bcfb92d3cabfddbb587746e8a8a8ef3afc8ad68287ad15b93168cfffeef", size = 46608899, upload-time = "2025-11-26T20:00:44.023Z" },
 ]
 
 [[package]]
@@ -109,7 +109,7 @@ wheels = [
 
 [[package]]
 name = "jsii"
-version = "1.119.0"
+version = "1.120.0"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "attrs" },
@@ -120,9 +120,9 @@ dependencies = [
     { name = "typeguard" },
     { name = "typing-extensions" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/a7/60/68bf5e617e94a584d2de483bd9162ad408a3a926e8de018bac36e375efec/jsii-1.119.0.tar.gz", hash = "sha256:9f87508908bfa51dd9aac59fdbbeff347ae76377758ea5e5f83f149052211514", size = 625546, upload-time = "2025-11-10T14:35:44.494Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/49/59/2b2c69a4c1cb91b757605bc6b543af055ee840b96406b2ae564bb86dab19/jsii-1.120.0.tar.gz", hash = "sha256:888855ddb7d124795e0c92c43d858d7d27f5372996210ec447a2a9af3a6c4315", size = 625665, upload-time = "2025-11-24T11:59:26.809Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/67/0e/ea1db75bcf2f1cf3556110ac60c88ef933bb5b910fa69ec008f726533a7f/jsii-1.119.0-py3-none-any.whl", hash = "sha256:9203200ed5289ecc6198783513cbd7abef53d4f6eac0046181d647fa56eda6ab", size = 601792, upload-time = "2025-11-10T14:35:43.103Z" },
+    { url = "https://files.pythonhosted.org/packages/64/98/56f5162c7a44b7cd2e967d113e001b5b2117eb84806eb9323f536f720e8e/jsii-1.120.0-py3-none-any.whl", hash = "sha256:5ba9b8a5420ce66f58b1a71ca57a4566c67f04b469140be335bd74abb91d5e0b", size = 601782, upload-time = "2025-11-24T11:59:25.344Z" },
 ]
 
 [[package]]
@@ -172,14 +172,11 @@ wheels = [
 
 [[package]]
 name = "typeguard"
-version = "4.2.1"
+version = "2.13.3"
 source = { registry = "https://pypi.org/simple" }
-dependencies = [
-    { name = "typing-extensions", marker = "python_full_version < '3.13'" },
-]
-sdist = { url = "https://files.pythonhosted.org/packages/6e/0e/96ec359939521f8c3e6c7b69526afab96fafe0520b5e1b890e061a66abc9/typeguard-4.2.1.tar.gz", hash = "sha256:c556a1b95948230510070ca53fa0341fb0964611bd05d598d87fb52115d65fee", size = 71292, upload-time = "2024-03-24T08:06:18.233Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/3a/38/c61bfcf62a7b572b5e9363a802ff92559cb427ee963048e1442e3aef7490/typeguard-2.13.3.tar.gz", hash = "sha256:00edaa8da3a133674796cf5ea87d9f4b4c367d77476e185e80251cc13dfbb8c4", size = 40604, upload-time = "2021-12-10T21:09:39.158Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/d9/59/e02336eb478ccdfc9bb0d4c27ce04a4260cd8b45aa04f6b00bcfdbb66a2a/typeguard-4.2.1-py3-none-any.whl", hash = "sha256:7da3bd46e61f03e0852f8d251dcbdc2a336aa495d7daff01e092b55327796eb8", size = 34634, upload-time = "2024-03-24T08:06:15.936Z" },
+    { url = "https://files.pythonhosted.org/packages/9a/bb/d43e5c75054e53efce310e79d63df0ac3f25e34c926be5dffb7d283fb2a8/typeguard-2.13.3-py3-none-any.whl", hash = "sha256:5e3e3be01e887e7eafae5af63d1f36c849aaa94e3a0112097312aabfa16284f1", size = 17605, upload-time = "2021-12-10T21:09:37.844Z" },
 ]
 
 [[package]]
