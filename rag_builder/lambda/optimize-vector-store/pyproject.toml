@@ -3,3 +3,24 @@ name = "optimize-vector-store"
 version = "0.1.0"
 requires-python = ">= 3.12"
 dependencies = ["lancedb>=0.25.2"]
+
+[dependency-groups]
+dev = [
+  "pytest>=9.0.1",
+  "pytest-cov>=7.0.0",
+  "pytest-env>=1.2.0",
+  "pytest-mock>=3.15.1",
+]
+
+[tool.pytest.ini_options]
+pythonpath = ["."]
+
+[tool.pytest_env]
+VECTOR_STORE_BUCKET = "test-bucket"
+
+[tool.coverage.run]
+omit = ["tests/*"]
+
+[tool.coverage.report]
+show_missing = true
+skip_empty = true
