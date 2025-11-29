@@ -2,7 +2,15 @@
 name = "rag-builder"
 version = "0.1.0"
 requires-python = ">= 3.12"
-dependencies = [
-  "aws-cdk-lib>=2.220.0",
-  "constructs>=10.4.2",
+dependencies = ["aws-cdk-lib>=2.220.0", "constructs>=10.4.2"]
+
+[dependency-groups]
+dev = [
+    "pytest>=9.0.1",
+    "pytest-mock>=3.15.1",
+    "syrupy>=5.0.0",
 ]
+
+[tool.pytest]
+pythonpath = ["."]
+testpaths = ["tests"]
