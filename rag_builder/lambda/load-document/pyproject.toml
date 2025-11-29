@@ -23,7 +23,7 @@ dev = [
   "respx>=0.22.0",
 ]
 
-[tool.pytest.ini_options]
+[tool.pytest]
 pythonpath = ["."]
 
 [tool.pytest_env]

@@ -13,7 +13,7 @@ dev = [
   "pytest-cov>=7.0.0",
 ]
 
-[tool.pytest.ini_options]
+[tool.pytest]
 pythonpath = ["."]
 
 [tool.coverage.run]

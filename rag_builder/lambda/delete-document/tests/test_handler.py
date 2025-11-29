@@ -1,5 +1,4 @@
 import json
-import os
 from unittest.mock import MagicMock
 
 from aws_lambda_powertools.utilities.typing import LambdaContext
