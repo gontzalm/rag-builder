@@ -1,4 +1,4 @@
-# Features
+# 🚧 Roadmap
 
 ## Backend
 
@@ -24,7 +24,7 @@
 
 ## Operational Excellence
 
-- [ ] Add comprehensive unit and integration tests
+- [x] Add comprehensive unit and integration tests
 - [ ] Implement an automated CI/CD pipeline
 - [ ] Integrate evaluation with RAGAS/DeepEval
 - [ ] Integrate LangSmith tracing
