@@ -6,7 +6,7 @@ user_env = []
 session_timeout = 3600
 
 # Duration (in seconds) of the user session expiry
-user_session_timeout = 1296000 # 15 days
+user_session_timeout = 3600
 
 # Enable third parties caching (e.g., LangChain cache)
 cache = false
@@ -36,7 +36,7 @@ user_message_autoscroll = true
 auto_tag_thread = true
 
 # Allow users to edit their own messages
-edit_message = true
+edit_message = false
 
 # Allow users to share threads (backend + UI). Requires an app-defined on_shared_thread_view callback.
 allow_thread_sharing = false
