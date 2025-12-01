@@ -22,7 +22,6 @@ class DocumentLoadMessage(TypedDict):
 
 
 def handler(event: dict[str, Any], _: LambdaContext) -> None:  # pyright: ignore[reportExplicitAny]
-    logger.info("testing CI")
     sqs_event = SQSEvent(event)
     record = next(sqs_event.records)
     logger.info("Processing SQS message ID '%s'", record.message_id)
