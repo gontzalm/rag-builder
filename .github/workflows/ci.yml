@@ -53,35 +53,30 @@ jobs:
             optimize_vector_store:
               - 'rag_builder/lambda/optimize-vector-store/**'
 
-      - name: Test stack
-        run: |
-          uv sync --frozen
-          uv run pytest
-
       - name: Test backend API
         if: steps.changes.outputs.backend_api == 'true'
         working-directory: rag_builder/lambda/backend-api
         run: |
           uv sync --frozen
-          uv run pytest
+          uv run pytest --cov
 
       - name: Test delete-document lambda
         if: steps.changes.outputs.delete_document == 'true'
         working-directory: rag_builder/lambda/delete-document
         run: |
           uv sync --frozen
-          uv run pytest
+          uv run pytest --cov
 
       - name: Test load-document lambda
         if: steps.changes.outputs.load_document == 'true'
         working-directory: rag_builder/lambda/load-document
         run: |
           uv sync --frozen
-          uv run pytest
+          uv run pytest --cov
 
       - name: Test optimize-vector-store lambda
         if: steps.changes.outputs.optimize_vector_store == 'true'
         working-directory: rag_builder/lambda/optimize-vector-store
         run: |
           uv sync --frozen
-          uv run pytest
+          uv run pytest --cov
