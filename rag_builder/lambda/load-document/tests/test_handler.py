@@ -69,7 +69,7 @@ class TestLoadDocument:
         # Verify LanceDB interactions
         lancedb.add_documents.assert_called_once()  # pyright: ignore[reportAny]
         lancedb_table.create_fts_index.assert_called_once_with("text")  # pyright: ignore[reportAny]
-        lancedb_table.wait_for_index.assert_called_once_with("text_idx")  # pyright: ignore[reportAny]
+        lancedb_table.wait_for_index.assert_called_once_with(["text_idx"])  # pyright: ignore[reportAny]
 
     @pytest.mark.usefixtures("pypdf_loader")
     def test_load_failed(self, respx_mock: MockRouter, lancedb: MagicMock):
