@@ -8,12 +8,8 @@ from typing import Literal, TypedDict, final
 import aws_cdk as cdk
 import aws_cdk.aws_cognito as cognito
 from aws_cdk import aws_apigateway as apigw
-from aws_cdk import aws_cloudfront as cloudfront
 from aws_cdk import aws_iam as iam
 from aws_cdk import aws_lambda as lambda_
-from aws_cdk import aws_s3 as s3
-from aws_cdk import aws_s3_deployment as s3_deployment
-from aws_cdk import aws_sam as sam
 from constructs import Construct
 
 BASE_DIR = Path(__file__).parent
@@ -139,12 +135,24 @@ class PythonFunction(Construct):
 
 @final
 class FastApiLambdaFunction(Construct):
-    _RUN_SH_CONTENT = textwrap.dedent("""\
-        #!/bin/bash
-        PATH=$PATH:$LAMBDA_TASK_ROOT/bin \\
-            PYTHONPATH=$PYTHONPATH:/opt/python:$LAMBDA_RUNTIME_DIR
-            exec python -m uvicorn --port ${AWS_LWA_PORT} --root-path /prod app.main:app
-    """)
+    _DOCKERFILE_TEMPLATE = Template(
+        textwrap.dedent(f"""\
+            FROM python:${{python_version}}-slim
+
+            COPY --from=public.ecr.aws/awsguru/aws-lambda-adapter:0.9.1 /lambda-adapter /opt/extensions/lambda-adapter
+
+            ENV AWS_LWA_PORT=8000
+
+            WORKDIR /var/task
+
+            COPY requirements.txt .
+            RUN pip install -r requirements.txt
+
+            COPY {" ".join(f"--exclude={p}" for p in PYTHON_EXCLUDE_PATTERNS)} . .
+
+            CMD ["uvicorn", "--port", "8000", "--root-path", "/prod", "app.main:app"]
+        """)
+    )
 
     def __init__(
         self,
@@ -165,50 +173,20 @@ class FastApiLambdaFunction(Construct):
 
         compile_uv_lock(lambda_code)
 
-        self.function = lambda_.Function(
+        dockerfile = lambda_code / "Dockerfile"
+        dockerfile_content = self._DOCKERFILE_TEMPLATE.safe_substitute(
+            {"python_version": runtime.name.removeprefix("python")}
+        )
+        _ = dockerfile.write_text(dockerfile_content)
+
+        self.function = lambda_.DockerImageFunction(
             scope,
             f"{id}-function",
-            runtime=runtime,
+            code=lambda_.DockerImageCode.from_image_asset(str(lambda_code)),
             architecture=lambda_.Architecture.ARM_64,  # pyright: ignore[reportAny]
             memory_size=memory,
-            handler="run.sh",
-            layers=[
-                lambda_.LayerVersion.from_layer_version_arn(
-                    self,
-                    f"{id}-adapterlayer",
-                    layer_version_arn=f"arn:aws:lambda:{cdk.Stack.of(self).region}:753240598075:layer:LambdaAdapterLayerArm64:24",
-                )
-            ],
-            code=lambda_.Code.from_asset(
-                str(lambda_code),
-                bundling=cdk.BundlingOptions(
-                    image=runtime.bundling_image,
-                    platform="linux/arm64",
-                    volumes=[
-                        cdk.DockerVolume(
-                            host_path=str(PIP_CACHE_DIR),
-                            container_path="/pip-cache",
-                        )
-                    ],
-                    environment={"PIP_CACHE_DIR": "/pip-cache"},
-                    command=[
-                        "bash",
-                        "-c",
-                        " && ".join(
-                            [
-                                f"echo -e '{self._RUN_SH_CONTENT}' > /asset-output/run.sh",
-                                "chmod +x /asset-output/run.sh",
-                                "pip install -r requirements.txt -t /asset-output",
-                                f"rsync -a {' '.join(f'--exclude {p}' for p in PYTHON_EXCLUDE_PATTERNS)} . /asset-output",
-                            ]
-                        ),
-                    ],
-                ),
-            ),
             timeout=cdk.Duration.seconds(30),
             environment={
-                "AWS_LAMBDA_EXEC_WRAPPER": "/opt/bootstrap",
-                "AWS_LWA_PORT": "8080",
                 "CORS_ALLOW_ORIGINS": ",".join(
                     ["http://localhost:8000"] + (cors_allow_origins or [])
                 ),
