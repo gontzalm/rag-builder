@@ -83,7 +83,7 @@ class LanceDbLoader(ABC):
 
         if table.index_stats(f"{self._DEFAULT_TEXT_COLUMN}_idx") is None:
             table.create_fts_index(self._DEFAULT_TEXT_COLUMN)
-            table.wait_for_index(f"{self._DEFAULT_TEXT_COLUMN}_idx")
+            table.wait_for_index([f"{self._DEFAULT_TEXT_COLUMN}_idx"])
 
     def _mark_in_progress(self) -> None:
         _ = self._http.patch(
