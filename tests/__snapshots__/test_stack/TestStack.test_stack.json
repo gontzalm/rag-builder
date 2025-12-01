@@ -1403,13 +1403,9 @@
         "Architectures": [
           "arm64"
         ],
-        "Code": {
-          "S3Bucket": "cdk-hnb659fds-assets-123456789012-us-east-1"
-        },
+        "Code": {},
         "Environment": {
           "Variables": {
-            "AWS_LAMBDA_EXEC_WRAPPER": "/opt/bootstrap",
-            "AWS_LWA_PORT": "8080",
             "CORS_ALLOW_ORIGINS": "http://localhost:8000",
             "DOCUMENT_DELETION_QUEUE": {
               "Ref": "documentdeletionqueueB6FB0754"
@@ -1425,18 +1421,14 @@
             }
           }
         },
-        "Handler": "run.sh",
-        "Layers": [
-          "arn:aws:lambda:us-east-1:753240598075:layer:LambdaAdapterLayerArm64:24"
-        ],
         "MemorySize": 256,
+        "PackageType": "Image",
         "Role": {
           "Fn::GetAtt": [
             "backendapifastapifunctionServiceRoleE5ACA8AA",
             "Arn"
           ]
         },
-        "Runtime": "python3.13",
         "Timeout": 30
       },
       "Type": "AWS::Lambda::Function"
