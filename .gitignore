@@ -12,5 +12,6 @@ cdk.out
 .coverage
 
 # generated
+rag_builder/lambda/*/.dockerignore
 rag_builder/lambda/*/Dockerfile
 rag_builder/lambda/*/requirements.txt

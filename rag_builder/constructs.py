@@ -16,7 +16,7 @@ BASE_DIR = Path(__file__).parent
 PIP_CACHE_DIR = BASE_DIR.parent / ".cdk-pip-cache"
 PIP_CACHE_DIR.mkdir(exist_ok=True)
 
-PYTHON_EXCLUDE_PATTERNS = (".venv", "__pycache__", "tests")
+PYTHON_IGNORE_PATTERNS = (".venv", "__pycache__", "tests")
 
 
 class Endpoint(TypedDict):
@@ -48,13 +48,13 @@ def compile_uv_lock(lambda_path: Path) -> None:
 @final
 class PythonFunction(Construct):
     _DOCKERFILE_TEMPLATE = Template(
-        textwrap.dedent(f"""\
-            FROM public.ecr.aws/lambda/python:${{python_version}}
+        textwrap.dedent("""\
+            FROM public.ecr.aws/lambda/python:${python_version}
 
-            COPY requirements.txt ${{LAMBDA_TASK_ROOT}}
+            COPY requirements.txt ${LAMBDA_TASK_ROOT}
             RUN pip install -r requirements.txt
 
-            COPY {" ".join(f"--exclude={p}" for p in PYTHON_EXCLUDE_PATTERNS)} . ${{LAMBDA_TASK_ROOT}}
+            COPY . ${LAMBDA_TASK_ROOT}
         """)
     )
 
@@ -76,6 +76,9 @@ class PythonFunction(Construct):
         compile_uv_lock(lambda_code)
 
         if containerized:
+            dockerignore = lambda_code / ".dockerignore"
+            _ = dockerignore.write_text("\n".join(PYTHON_IGNORE_PATTERNS))
+
             dockerfile = lambda_code / "Dockerfile"
             dockerfile_content = self._DOCKERFILE_TEMPLATE.safe_substitute(
                 {"python_version": runtime.name.removeprefix("python")}
@@ -122,7 +125,7 @@ class PythonFunction(Construct):
                             " && ".join(
                                 [
                                     "pip install -r requirements.txt -t /asset-output",
-                                    f"rsync -a {' '.join(f'--exclude {p}' for p in PYTHON_EXCLUDE_PATTERNS)} . /asset-output",
+                                    f"rsync -a {' '.join(f'--exclude {p}' for p in PYTHON_IGNORE_PATTERNS)} . /asset-output",
                                 ]
                             ),
                         ],
@@ -136,8 +139,8 @@ class PythonFunction(Construct):
 @final
 class FastApiLambdaFunction(Construct):
     _DOCKERFILE_TEMPLATE = Template(
-        textwrap.dedent(f"""\
-            FROM python:${{python_version}}-slim
+        textwrap.dedent("""\
+            FROM python:${python_version}-slim
 
             COPY --from=public.ecr.aws/awsguru/aws-lambda-adapter:0.9.1 /lambda-adapter /opt/extensions/lambda-adapter
 
@@ -148,7 +151,7 @@ class FastApiLambdaFunction(Construct):
             COPY requirements.txt .
             RUN pip install -r requirements.txt
 
-            COPY {" ".join(f"--exclude={p}" for p in PYTHON_EXCLUDE_PATTERNS)} . .
+            COPY . .
 
             CMD ["uvicorn", "--port", "8000", "--root-path", "/prod", "app.main:app"]
         """)
@@ -172,6 +175,9 @@ class FastApiLambdaFunction(Construct):
         lambda_code = BASE_DIR / "lambda" / id.removesuffix("-fastapi")
 
         compile_uv_lock(lambda_code)
+
+        dockerignore = lambda_code / ".dockerignore"
+        _ = dockerignore.write_text("\n".join(PYTHON_IGNORE_PATTERNS))
 
         dockerfile = lambda_code / "Dockerfile"
         dockerfile_content = self._DOCKERFILE_TEMPLATE.safe_substitute(
