@@ -1,12 +1,8 @@
 # 🏗️ RAG Builder
 
-[![GitHub License](https://img.shields.io/github/license/gontzalm/rag-builder?style=for-the-badge&logo=github&label=License)](https://github.com/gontzalm/rag-builder/blob/main/LICENSE)
 [![GitHub Actions Workflow Status](https://img.shields.io/github/actions/workflow/status/gontzalm/rag-builder/ci.yml?style=for-the-badge&logo=githubactions&label=CI)](https://github.com/gontzalm/rag-builder/actions/workflows/ci.yml)
 ![GitHub commit activity](https://img.shields.io/github/commit-activity/t/gontzalm/rag-builder?style=for-the-badge&logo=github&label=Commits)
-
-[![LangChain](https://img.shields.io/badge/langchain-27403e?style=for-the-badge&logo=langchain&logoColor=white&logoSize=auto)](https://www.langchain.com/)
-[![FastAPI](https://img.shields.io/badge/fastapi-009485.svg?style=for-the-badge&logo=fastapi&logoColor=white)](https://fastapi.tiangolo.com)
-[![UV](https://img.shields.io/badge/uv-black?style=for-the-badge&logo=astral&logoColor=D1FF4F)](https://docs.astral.sh/uv/)
+[![GitHub License](https://img.shields.io/github/license/gontzalm/rag-builder?style=for-the-badge&logo=github&label=License)](https://github.com/gontzalm/rag-builder/blob/main/LICENSE)
 
 ---
 
@@ -215,10 +211,10 @@ while connecting to the deployed AWS resources.
 
 ## 🛠️ Technology Stack
 
-- **Infrastructure as Code:** [AWS CDK](https://aws.amazon.com/cdk/)
-- **Frontend:** [Chainlit](https://docs.chainlit.io/get-started/overview)
-- **Backend:** [FastAPI](https://fastapi.tiangolo.com/)
-- **AI/ML:** [LangChain](https://www.langchain.com/),
-  [Amazon Bedrock](https://aws.amazon.com/bedrock/),
-  [LanceDB](https://lancedb.github.io/lancedb/)
-- **Package Management:** [uv](https://github.com/astral-sh/uv)
+| Category                   | Technology                                                                                                                                                                                                                                                                                                                                                                                                                        |
+| -------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Infrastructure as Code** | [![AWS CDK](https://img.shields.io/badge/aws_cdk-orange?style=for-the-badge&logo=icloud&logoColor=white)](https://aws.amazon.com/cdk/)                                                                                                                                                                                                                                                                                            |
+| **Frontend**               | [![Chainlit](https://img.shields.io/badge/chainlit-crimson?style=for-the-badge&logoColor=white)](https://docs.chainlit.io/get-started/overview)                                                                                                                                                                                                                                                                                   |
+| **Backend**                | [![FastAPI](https://img.shields.io/badge/fastapi-009485.svg?style=for-the-badge&logo=fastapi&logoColor=white)](https://fastapi.tiangolo.com)                                                                                                                                                                                                                                                                                      |
+| **GenAI**                  | [![LangChain](https://img.shields.io/badge/langchain-27403e?style=for-the-badge&logo=langchain&logoColor=white&logoSize=auto)](https://www.langchain.com/) [![AWS Bedrock](https://img.shields.io/badge/aws_bedrock-orange?style=for-the-badge&logo=icloud&logoColor=white)](https://aws.amazon.com/bedrock/) [![LanceDB](https://img.shields.io/badge/lancedb-tomato?style=for-the-badge&logoColor=white)](https://lancedb.com/) |
+| **Package Management**     | [![UV](https://img.shields.io/badge/uv-black?style=for-the-badge&logo=astral&logoColor=D1FF4F)](https://docs.astral.sh/uv/)                                                                                                                                                                                                                                                                                                       |
