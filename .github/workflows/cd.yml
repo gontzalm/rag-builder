@@ -10,6 +10,9 @@ on:
       - "pyproject.toml"
       - "uv.lock"
 
+concurrency:
+  group: ${{ github.workflow }}
+
 jobs:
   deploy:
     name: Deploy CDK stack
