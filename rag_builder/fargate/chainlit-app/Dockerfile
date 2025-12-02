@@ -5,7 +5,7 @@ WORKDIR /app
 COPY requirements.txt .
 RUN pip install -r requirements.txt
 
-COPY --exclude=.venv --exclude=__pycache__ --exclude=.env . .
+COPY . .
 
 EXPOSE 8000
 
