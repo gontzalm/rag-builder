@@ -44,5 +44,5 @@ jobs:
       - name: Install dependencies
         run: uv sync --frozen
 
-      - name: CDK Deploy
+      - name: Deploy stack
         run: uv run cdk deploy --require-approval never
