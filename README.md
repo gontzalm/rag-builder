@@ -127,6 +127,37 @@ the LanceDB vector store. This approach combines:
 This ensures a robust retrieval process that captures both conceptually similar
 content and exact keyword matches.
 
+## ⚙️ CI/CD
+
+This project implements a production-grade CI/CD pipeline using **GitHub
+Actions**, focusing on speed, security, and developer feedback.
+
+### Continuous Integration (CI)
+
+> Triggered on: **Pull Requests to `main`**
+
+- **Efficient Dependency Management:** Uses `uv` to install Python dependencies
+  at lightning speeds, significantly reducing CI build times compared to `pip`
+  or `poetry`.
+- **Smart Monorepo Testing:** Implements `dorny/paths-filter` to only run tests
+  for components that have changed (e.g., if only the Backend API is modified,
+  only those tests run), saving compute resources.
+- **Automated Feedback:** Posts detailed **Test Coverage Reports** directly to
+  Pull Requests as comments, ensuring code quality visibility before merging.
+- **Isolated Environments:** Runs unit tests for each Lambda function in
+  isolated environments to prevent dependency conflicts.
+
+### Continuous Deployment (CD)
+
+> Triggered on: **Push to `main`** (after CI passes and PR is merged)
+
+- **Secure Authentication:** Uses **OpenID Connect (OIDC)** to authenticate with
+  AWS, eliminating the need for long-lived Access Keys in GitHub Secrets.
+- **Infrastructure as Code:** Automatically deploys infrastructure changes via
+  AWS CDK.
+- **Concurrency Control:** Prevents race conditions by ensuring only one
+  deployment pipeline runs at a time for the production environment.
+
 ## 🚀 Getting Started
 
 ### Prerequisites
