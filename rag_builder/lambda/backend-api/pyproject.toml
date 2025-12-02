@@ -11,6 +11,7 @@ dev = [
   "moto[sqs]>=5.1.17",
   "pytest>=9.0.1",
   "pytest-cov>=7.0.0",
+  "pytest-env>=1.2.0",
 ]
 
 [tool.pytest]
@@ -22,3 +23,8 @@ source = ["app"]
 [tool.coverage.report]
 show_missing = true
 skip_empty = true
+
+[tool.pytest_env]
+AWS_DEFAULT_REGION = "us-east-1"
+AWS_ACCESS_KEY_ID = "testing"
+AWS_SECRET_ACCESS_KEY = "testing"
