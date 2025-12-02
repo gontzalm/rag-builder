@@ -2613,6 +2613,54 @@
       "Type": "AWS::DynamoDB::Table",
       "UpdateReplacePolicy": "Delete"
     },
+    "githubactionsdeployroleDefaultPolicy9B661339": {
+      "Properties": {
+        "PolicyDocument": {
+          "Statement": [
+            {
+              "Action": "sts:AssumeRole",
+              "Effect": "Allow",
+              "Resource": "arn:aws:iam::123456789012:role/cdk-hnb659fds-*"
+            }
+          ],
+          "Version": "2012-10-17"
+        },
+        "PolicyName": "githubactionsdeployroleDefaultPolicy9B661339",
+        "Roles": [
+          {
+            "Ref": "githubactionsdeployroleF9C4A5C9"
+          }
+        ]
+      },
+      "Type": "AWS::IAM::Policy"
+    },
+    "githubactionsdeployroleF9C4A5C9": {
+      "Properties": {
+        "AssumeRolePolicyDocument": {
+          "Statement": [
+            {
+              "Action": "sts:AssumeRoleWithWebIdentity",
+              "Condition": {
+                "StringEquals": {
+                  "token.actions.githubusercontent.com:aud": "sts.amazonaws.com"
+                },
+                "StringLike": {
+                  "token.actions.githubusercontent.com:sub": "repo:gontzalm/rag-builder:*"
+                }
+              },
+              "Effect": "Allow",
+              "Principal": {
+                "Federated": "arn:aws:iam::123456789012:oidc-provider/token.actions.githubusercontent.com"
+              }
+            }
+          ],
+          "Version": "2012-10-17"
+        },
+        "Description": "Role assumed by GitHub Actions to deploy the stack",
+        "RoleName": "GithubActionsDeployRole"
+      },
+      "Type": "AWS::IAM::Role"
+    },
     "loaddocumentfunctiondockerfunction8E18AE45": {
       "DependsOn": [
         "loaddocumentfunctiondockerfunctionServiceRoleDefaultPolicy34CE5F68",

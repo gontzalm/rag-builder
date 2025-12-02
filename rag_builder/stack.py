@@ -18,7 +18,12 @@ import aws_cdk.aws_scheduler_targets as scheduler_targets
 from aws_cdk import aws_sqs as sqs
 from constructs import Construct
 
-from rag_builder.constructs import BASE_DIR, FastApiLambdaFunction, PythonFunction
+from rag_builder.constructs import (
+    BASE_DIR,
+    FastApiLambdaFunction,
+    GithubActionsDeployRole,
+    PythonFunction,
+)
 
 
 class RagBuilderStack(cdk.Stack):
@@ -402,4 +407,11 @@ class RagBuilderStack(cdk.Stack):
                 AGENT_MODEL={agent_model.model_arn.partition("/")[2]}
                 BACKEND_API_URL={backend_api.apigw.url}
             """),
+        )
+
+        # GITHUB DEPLOY ROLE
+        _ = GithubActionsDeployRole(
+            self,
+            "github-actions-deploy-role",
+            repo="gontzalm/rag-builder",
         )

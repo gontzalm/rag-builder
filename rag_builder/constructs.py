@@ -241,3 +241,50 @@ class FastApiLambdaFunction(Construct):
     def grant_execute_on_iam_methods(self, grantee: iam.IGrantable) -> None:
         for method in self._iam_authorized_methods:
             _ = method.grant_execute(grantee)
+
+
+@final
+class GithubActionsDeployRole(iam.Role):
+    _PROVIDER_URL = "token.actions.githubusercontent.com"
+
+    def __init__(
+        self,
+        scope: Construct,
+        id: str,
+        *,
+        repo: str,  # Match the usage in stack.py
+        role_name: str = "GithubActionsDeployRole",
+    ) -> None:
+        account = cdk.Stack.of(scope).account
+
+        # Import the provider (must be created manually)
+        provider = iam.OpenIdConnectProvider.from_open_id_connect_provider_arn(
+            scope,
+            f"{id}-provider",
+            f"arn:aws:iam::{account}:oidc-provider/{self._PROVIDER_URL}",
+        )
+
+        super().__init__(
+            scope,
+            id,
+            role_name=role_name,
+            assumed_by=iam.FederatedPrincipal(  # pyright: ignore[reportArgumentType]
+                provider.open_id_connect_provider_arn,
+                {
+                    "StringLike": {f"{self._PROVIDER_URL}:sub": f"repo:{repo}:*"},
+                    "StringEquals": {f"{self._PROVIDER_URL}:aud": "sts.amazonaws.com"},
+                },
+                "sts:AssumeRoleWithWebIdentity",
+            ),
+            description="Role assumed by GitHub Actions to deploy the stack",
+        )
+
+        # Grant permissions to assume CDK bootstrap roles
+        _ = self.add_to_principal_policy(
+            iam.PolicyStatement(
+                actions=["sts:AssumeRole"],
+                resources=[
+                    f"arn:aws:iam::{account}:role/cdk-{cdk.DefaultStackSynthesizer.DEFAULT_QUALIFIER}-*"  # pyright: ignore[reportAny]
+                ],
+            )
+        )
