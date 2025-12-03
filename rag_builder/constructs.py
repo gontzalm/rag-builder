@@ -42,6 +42,7 @@ def compile_uv_lock(lambda_path: Path) -> None:
             ],
             check=True,
             cwd=str(lambda_path),
+            stdout=subprocess.DEVNULL,
         )
 
 
