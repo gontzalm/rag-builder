@@ -4,7 +4,7 @@ from abc import ABC, abstractmethod
 from datetime import UTC, datetime
 from functools import cached_property
 from pathlib import Path
-from typing import Self, override
+from typing import Self, final, override
 
 from httpx import Client
 from lancedb import DBConnection
@@ -15,7 +15,7 @@ from langchain_core.document_loaders import BaseLoader
 from langchain_core.documents import Document
 from langchain_text_splitters import RecursiveCharacterTextSplitter
 
-from auth import AwsBotoAuth
+from load_document.auth import AwsBotoAuth
 
 logger = logging.getLogger()
 
@@ -133,14 +133,16 @@ class LanceDbLoader(ABC):
             logger.info("Sucessfully completed document load ID '%s'", self.load_id)
 
 
+@final
 class PdfLoader(LanceDbLoader):
+    _DOCUMENT = Path("/tmp/document.pdf")
+
     @cached_property
     @override
     def _loader(self) -> PyPDFLoader:
         logger.info("Downloading PDF document from url '%s'", self.url)
         r = self._http.get(self.url)
         _ = r.raise_for_status()
-        document = Path("/tmp/document.pdf")
-        _ = document.write_bytes(r.content)
-        logger.info("Creating PyPDFLoader from document '%s'", document)
-        return PyPDFLoader(document)
+        _ = self._DOCUMENT.write_bytes(r.content)
+        logger.info("Creating PyPDFLoader from document '%s'", self._DOCUMENT)
+        return PyPDFLoader(self._DOCUMENT)

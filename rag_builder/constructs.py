@@ -55,7 +55,9 @@ class PythonFunction(Construct):
             COPY requirements.txt ${LAMBDA_TASK_ROOT}
             RUN pip install -r requirements.txt
 
-            COPY . ${LAMBDA_TASK_ROOT}
+            COPY src ${LAMBDA_TASK_ROOT}
+
+            CMD ["${function_package}.function.handler"]
         """)
     )
 
@@ -72,7 +74,8 @@ class PythonFunction(Construct):
     ) -> None:
         super().__init__(scope, id)
 
-        lambda_code = BASE_DIR / "lambda" / id.removesuffix("-function")
+        function_name = id.removesuffix("-function")
+        lambda_code = BASE_DIR / "lambda" / function_name
 
         compile_uv_lock(lambda_code)
 
@@ -82,14 +85,14 @@ class PythonFunction(Construct):
 
             dockerfile = lambda_code / "Dockerfile"
             dockerfile_content = self._DOCKERFILE_TEMPLATE.safe_substitute(
-                {"python_version": runtime.name.removeprefix("python")}
+                {
+                    "python_version": runtime.name.removeprefix("python"),
+                    "function_package": function_name.replace("-", "_"),
+                }
             )
             _ = dockerfile.write_text(dockerfile_content)
 
-            docker_code = lambda_.DockerImageCode.from_image_asset(
-                str(lambda_code),
-                cmd=["function.handler"],
-            )
+            docker_code = lambda_.DockerImageCode.from_image_asset(str(lambda_code))
 
             self.function = lambda_.DockerImageFunction(
                 scope,

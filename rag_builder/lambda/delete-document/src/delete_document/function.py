@@ -5,7 +5,7 @@ from typing import Any, TypedDict
 from aws_lambda_powertools.utilities.data_classes.sqs_event import SQSEvent
 from aws_lambda_powertools.utilities.typing import LambdaContext
 
-from deleter import LanceDbDeleter
+from delete_document.deleter import LanceDbDeleter
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.INFO)

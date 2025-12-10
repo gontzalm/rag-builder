@@ -5,7 +5,7 @@ from typing import Any, TypedDict
 from aws_lambda_powertools.utilities.data_classes.sqs_event import SQSEvent
 from aws_lambda_powertools.utilities.typing import LambdaContext
 
-from loader import PdfLoader
+from load_document.loader import PdfLoader
 
 logger = logging.getLogger()
 logger.setLevel(logging.INFO)
