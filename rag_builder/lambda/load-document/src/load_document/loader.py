@@ -24,7 +24,7 @@ class LanceDbLoader(ABC):
     _VECTOR_STORE_BUCKET: str = os.environ["VECTOR_STORE_BUCKET"]
     _EMBEDDINGS_MODEL: str = os.environ["EMBEDDINGS_MODEL"]
     _BACKEND_API_URL: str = os.environ["BACKEND_API_URL"]
-    _DEFAULT_TABLE: str = "vectorstore"
+    _TARGET_TABLE: str = "vectorstore"
     _DEFAULT_TEXT_COLUMN: str = "text"
 
     def __init__(self, load_id: str, url: str) -> None:
@@ -44,6 +44,7 @@ class LanceDbLoader(ABC):
         return LanceDB(
             uri=f"s3://{self._VECTOR_STORE_BUCKET}",
             embedding=BedrockEmbeddings(model_id=self._EMBEDDINGS_MODEL),
+            table_name=self._TARGET_TABLE,
         )
 
     @cached_property
@@ -79,7 +80,7 @@ class LanceDbLoader(ABC):
             doc.metadata.update(self._extra_metadata)  # pyright: ignore[reportUnknownMemberType]
 
     def _create_fts_index_if_not_exists(self) -> None:
-        table = self._db.open_table(self._DEFAULT_TABLE)
+        table = self._db.open_table(self._TARGET_TABLE)
 
         if table.index_stats(f"{self._DEFAULT_TEXT_COLUMN}_idx") is None:
             table.create_fts_index(self._DEFAULT_TEXT_COLUMN)
