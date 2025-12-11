@@ -26,6 +26,7 @@ class LanceDbLoader(ABC):
     _BACKEND_API_URL: str = os.environ["BACKEND_API_URL"]
     _TARGET_TABLE: str = "vectorstore"
     _DEFAULT_TEXT_COLUMN: str = "text"
+    _METADATA_FIELDS: set[str] = {"total_pages", "page_label"}
 
     def __init__(self, load_id: str, url: str) -> None:
         self._http: Client = Client(base_url=self._BACKEND_API_URL, auth=AwsBotoAuth())
@@ -75,8 +76,16 @@ class LanceDbLoader(ABC):
             RecursiveCharacterTextSplitter().split_documents(self._loader.lazy_load())
         )
 
-    def _add_extra_metadata(self) -> None:
+    def _compute_metadata(self) -> None:
+        current_fields = self._documents[0].metadata.keys()  # pyright: ignore[reportUnknownMemberType, reportUnknownVariableType]
+        excess_fields = current_fields - self._METADATA_FIELDS  # pyright: ignore[reportUnknownVariableType]
+        missing_fields = self._METADATA_FIELDS - current_fields
+
         for doc in self._documents:
+            for field in excess_fields:  # pyright: ignore[reportUnknownVariableType]
+                _ = doc.metadata.pop(field)  # pyright: ignore[reportUnknownMemberType, reportUnknownArgumentType]
+            for field in missing_fields:
+                doc.metadata[field] = None  # pyright: ignore[reportUnknownMemberType]
             doc.metadata.update(self._extra_metadata)  # pyright: ignore[reportUnknownMemberType]
 
     def _create_fts_index_if_not_exists(self) -> None:
@@ -119,7 +128,7 @@ class LanceDbLoader(ABC):
         self._mark_in_progress()
         try:
             self._load_and_split_documents()
-            self._add_extra_metadata()
+            self._compute_metadata()
             _ = self._vector_store.add_documents(
                 self._documents,
                 ids=[f"{self.load_id}-{i:04d}" for i in range(len(self._documents))],
