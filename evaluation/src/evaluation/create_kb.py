@@ -1,5 +1,4 @@
 import os
-import sys
 import uuid
 from pathlib import Path
 from typing import Annotated
@@ -14,14 +13,6 @@ EVALUATION_KB_DOCS = (
     "https://arxiv.org/pdf/2407.21783",
     "https://arxiv.org/pdf/2405.18346",
     "https://arxiv.org/pdf/2403.04132",
-)
-
-os.environ.update(
-    {
-        "BACKEND_API_URL": "",
-        "AWS_REGION": "us-east-1",
-        "VECTOR_STORE_BUCKET": "rag-builder-stack-vectorstorebucket74aa40c4-k0oooku9ziia",
-    }
 )
 
 app = typer.Typer()
@@ -48,7 +39,9 @@ def create_kb(
 
     os.environ["EMBEDDINGS_MODEL"] = embedding_model
 
-    from load_document.loader import PdfLoader
+    from load_document.loader import (  # pyright: ignore[reportMissingTypeStubs]
+        PdfLoader,
+    )
 
     target_table = f"evaluation_{embedding_model.replace(':', '-')}"
     console.print(f"Creating knowledge base as LanceDB table '{target_table}'")

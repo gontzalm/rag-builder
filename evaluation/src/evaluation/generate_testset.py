@@ -5,9 +5,8 @@ from typing import Annotated
 import typer
 from langchain_aws import BedrockEmbeddings, ChatBedrockConverse
 from langchain_community.document_loaders import PyPDFDirectoryLoader
-from langchain_core.messages import HumanMessage
 from langchain_core.outputs import ChatGeneration, ChatResult, LLMResult
-from langchain_core.prompt_values import PromptValue, StringPromptValue
+from langchain_core.prompt_values import StringPromptValue
 from ragas.cost import TokenUsage
 from ragas.embeddings import BaseRagasEmbeddings, LangchainEmbeddingsWrapper
 from ragas.llms import BaseRagasLLM, LangchainLLMWrapper
@@ -120,7 +119,7 @@ def get_token_usage_for_bedrock(
 
 @app.command()
 def generate_testset(
-    model: Annotated[
+    generator_model: Annotated[
         str, typer.Argument(help="Bedrock model to use for the testset generation")
     ] = "us.anthropic.claude-sonnet-4-5-20250929-v1:0",
 ) -> None:
@@ -131,7 +130,7 @@ def generate_testset(
         )
         raise typer.Exit(code=1)
 
-    generator_llm = LangchainLLMWrapper(ChatBedrockConverse(model=model))  # pyright: ignore[reportAny]
+    generator_llm = LangchainLLMWrapper(ChatBedrockConverse(model=generator_model))  # pyright: ignore[reportAny]
     generator_embeddings = LangchainEmbeddingsWrapper(  # pyright: ignore[reportAny]
         BedrockEmbeddings(model_id="amazon.titan-embed-text-v2:0")
     )
@@ -197,7 +196,7 @@ def generate_testset(
     testset.to_evaluation_dataset().to_csv(testset_csv)  # pyright: ignore[reportAttributeAccessIssue, reportUnusedCallResult, reportUnknownMemberType]
 
     console.print("Computing usage metrics")
-    model_pricing = MODEL_PRICING_PER_1K[model]
+    model_pricing = MODEL_PRICING_PER_1K[generator_model]
     usage = testset.total_tokens()
     cost = testset.total_cost(  # pyright: ignore[reportUnknownMemberType, reportAttributeAccessIssue, reportUnknownVariableType]
         model_pricing["input"] / 1e3, model_pricing["output"] / 1e3
