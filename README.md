@@ -127,6 +127,32 @@ the LanceDB vector store. This approach combines:
 This ensures a robust retrieval process that captures both conceptually similar
 content and exact keyword matches.
 
+## (TODO: add emoji) Evaluation Module
+
+TODO: add intro to evaluation module.
+
+![main](https://github.com/user-attachments/assets/6c64e370-a102-4a6e-a1da-a19644814a88)
+
+
+### `create-kb`
+
+![create-kb](https://github.com/user-attachments/assets/8f11fccb-0282-4f53-97e9-13e94b5089de)
+
+### `generate-testset`
+
+![generate-testset](https://github.com/user-attachments/assets/731a2d88-99fa-47cf-a65d-8e266467f815)
+
+### `run-experiment`
+
+![run-experiment](https://github.com/user-attachments/assets/9a35e6d9-e853-4cc1-9dd7-7fb22a072133)
+
+### `visualize-experiments`
+
+![visualize-experiments](https://github.com/user-attachments/assets/150e08bd-017d-4213-9dd2-e768c41692ce)
+
+TODO: add dashboard output
+
+
 ## ⚙️ CI/CD
 
 This project implements a production-grade CI/CD pipeline using **GitHub
