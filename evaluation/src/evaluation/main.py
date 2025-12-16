@@ -8,6 +8,7 @@ from .visualize_experiments import app as visualize_app
 
 _ = load_dotenv()
 
+
 app = typer.Typer(no_args_is_help=True)
 
 app.add_typer(create_kb_app)

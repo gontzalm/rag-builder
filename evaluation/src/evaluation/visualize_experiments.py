@@ -4,8 +4,8 @@ from pathlib import Path
 import pandas as pd
 import plotly.express as px
 import typer
-from rich.console import Console
 
+from .console import get_console
 from .run_experiment import RESULTS_CSV
 
 METADATA_COLS = ["agent_model", "embedding_model", "temperature", "system_prompt"]
@@ -17,8 +17,7 @@ HTML_DASHBOARD = Path("dashboard.html")
 
 app = typer.Typer()
 
-console = Console()
-console_err = Console(stderr=True)
+console = get_console()
 
 
 @app.command()
@@ -26,15 +25,13 @@ def visualize_experiments() -> None:
     """Generate a Plotly dashboard to visualize experiment results"""
 
     if not RESULTS_CSV.exists():
-        console_err.print(
-            f"[bold red]Error:[/bold red] Results CSV '{RESULTS_CSV}' not found"
-        )
+        console.print(f"❌ Results CSV '{RESULTS_CSV}' not found", style="error")
         raise typer.Exit(code=1)
 
-    console.print(f"Reading results from '{RESULTS_CSV}'")
-    df = pd.read_csv(RESULTS_CSV, parse_dates=["experimented_at"])
+    console.print(f"📖 Reading results from '{RESULTS_CSV}'", style="info")
+    df = pd.read_csv(RESULTS_CSV, parse_dates=["experimented_at"])  # pyright: ignore[reportUnknownMemberType]
     df = (
-        df.groupby("experiment_id")
+        df.groupby("experiment_id")  # pyright: ignore[reportUnknownMemberType]
         .agg(
             {
                 "experimented_at": "first",
@@ -54,8 +51,9 @@ def visualize_experiments() -> None:
     )
     df["metric"] = df["metric"].map(METRIC_LABELS)
 
-    fig = px.line(
-        df,
+    console.print("📊 Generating Plotly dashboard", style="info")
+    fig = px.line(  # pyright: ignore[reportUnknownMemberType]
+        df,  # pyright: ignore[reportArgumentType]
         x="experimented_at",
         y="score",
         color="metric",
@@ -67,5 +65,6 @@ def visualize_experiments() -> None:
     _ = fig.update_layout(yaxis_range=[0, 1])
     fig.write_html(HTML_DASHBOARD)
 
-    console.print(f"Visualization saved to '{HTML_DASHBOARD}'")
+    console.print(f"💾 Visualization saved to '{HTML_DASHBOARD}'", style="success")
+    console.print("🌐 Opening dashboard in browser", style="info")
     _ = webbrowser.open(HTML_DASHBOARD.resolve().as_uri())
