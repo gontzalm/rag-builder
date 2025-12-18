@@ -3,7 +3,7 @@ from unittest.mock import MagicMock
 
 from aws_lambda_powertools.utilities.typing import LambdaContext
 
-from function import handler
+from delete_document.function import handler
 
 
 class TestDeleteDocument:

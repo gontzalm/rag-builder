@@ -8,7 +8,7 @@ from pytest_mock import MockerFixture
 def lancedb(mocker: MockerFixture) -> MagicMock:
     """Mocks lancedb.connect and its subsequent calls."""
     # Mock lancedb.connect
-    mock = mocker.patch("deleter.lancedb.connect")
+    mock = mocker.patch("delete_document.deleter.lancedb.connect")
     mock_db = mock.return_value  # pyright: ignore[reportAny]
 
     # Mock the Table object and its delete method

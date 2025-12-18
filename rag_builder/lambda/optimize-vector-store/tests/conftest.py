@@ -8,7 +8,7 @@ from pytest_mock import MockerFixture
 def lancedb(mocker: MockerFixture) -> MagicMock:
     """Mocks lancedb.connect and its subsequent calls."""
     # Mock lancedb.connect
-    mock = mocker.patch("optimizer.lancedb.connect")
+    mock = mocker.patch("optimize_vector_store.optimizer.lancedb.connect")
     mock_db = mock.return_value  # pyright: ignore[reportAny]
 
     # Mock open_table and its optimize method

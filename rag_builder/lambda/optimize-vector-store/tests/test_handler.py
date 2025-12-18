@@ -1,6 +1,8 @@
 from unittest.mock import MagicMock
 
-from function import handler  # pyright: ignore[reportUnknownVariableType]
+from optimize_vector_store.function import (
+    handler,  # pyright: ignore[reportUnknownVariableType]
+)
 
 
 class TestOptimizeVectorStore:

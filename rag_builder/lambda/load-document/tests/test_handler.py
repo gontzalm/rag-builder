@@ -6,7 +6,7 @@ import pytest
 from aws_lambda_powertools.utilities.typing import LambdaContext
 from respx import MockRouter
 
-from function import handler
+from load_document.function import handler
 
 
 @pytest.mark.respx(base_url=os.environ["BACKEND_API_URL"], assert_all_called=False)
@@ -73,8 +73,6 @@ class TestLoadDocument:
 
     @pytest.mark.usefixtures("pypdf_loader")
     def test_load_failed(self, respx_mock: MockRouter, lancedb: MagicMock):
-        # respx_mock.base_url = "http://test-api"
-
         # Simulate an error during add_documents
         lancedb.add_documents.side_effect = Exception("LanceDB failed to add documents")  # pyright: ignore[reportAny]
 

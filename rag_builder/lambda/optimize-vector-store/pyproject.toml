@@ -13,7 +13,7 @@ dev = [
 ]
 
 [tool.pytest]
-pythonpath = ["."]
+pythonpath = ["src"]
 
 [tool.pytest_env]
 VECTOR_STORE_BUCKET = "test-bucket"

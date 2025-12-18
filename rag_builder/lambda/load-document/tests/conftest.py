@@ -7,7 +7,7 @@ from pytest_mock import MockerFixture, MockType
 @pytest.fixture
 def lancedb(mocker: MockerFixture) -> MagicMock:
     """Mocks LanceDB vector store."""
-    mock = mocker.patch("loader.LanceDB")
+    mock = mocker.patch("load_document.loader.LanceDB")
     mock_instance = mock.return_value  # pyright: ignore[reportAny]
     mock_instance.add_documents.return_value = None  # pyright: ignore[reportAny]
 
@@ -30,12 +30,12 @@ def lancedb_table(lancedb: MagicMock) -> MagicMock:
 
 @pytest.fixture
 def bedrock_embeddings(mocker: MockerFixture) -> MagicMock:
-    return mocker.patch("loader.BedrockEmbeddings").return_value  # pyright: ignore[reportAny]
+    return mocker.patch("load_document.loader.BedrockEmbeddings").return_value  # pyright: ignore[reportAny]
 
 
 @pytest.fixture
 def pypdf_loader(mocker: MockerFixture) -> MagicMock:
-    mock = mocker.patch("loader.PyPDFLoader")
+    mock = mocker.patch("load_document.loader.PyPDFLoader")
     mock_instance = mock.return_value  # pyright: ignore[reportAny]
 
     # Setup default document return for the mock instance's lazy_load method
@@ -56,7 +56,7 @@ def path_write_bytes(mocker: MockerFixture) -> MagicMock:
 @pytest.fixture
 def aws_auth(mocker: MockerFixture) -> MockType:
     """Mocks AwsBotoAuth to avoid credential resolution during Client init."""
-    mock = mocker.patch("loader.AwsBotoAuth")
+    mock = mocker.patch("load_document.loader.AwsBotoAuth")
     # The instance returned by AwsBotoAuth() needs to be callable
     # and return the request passed to it, satisfying httpx auth protocol.
     mock.return_value.side_effect = lambda request: request  # pyright: ignore[reportAny, reportUnknownLambdaType]
