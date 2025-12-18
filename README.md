@@ -129,10 +129,11 @@ content and exact keyword matches.
 
 ## 📊 Evaluation Module
 
-The evaluation module provides a comprehensive framework for testing and
-analyzing RAG system performance. It uses [RAGAS](https://ragas.io/) to generate
-synthetic test datasets, run experiments with different configurations, and
-visualize results through an interactive dashboard.
+The evaluation module provides a comprehensive framework (CLI tool built with
+[Typer](https://typer.tiangolo.com/)) for testing and analyzing RAG system
+performance. It uses [RAGAS](https://ragas.io/) to generate synthetic test
+datasets, run experiments with different configurations, and visualize results
+through an interactive dashboard.
 
 The evaluation workflow consists of four main steps:
 
@@ -305,4 +306,5 @@ while connecting to the deployed AWS resources.
 | **Frontend**               | [![Chainlit](https://img.shields.io/badge/chainlit-crimson?style=for-the-badge&logoColor=white)](https://docs.chainlit.io/get-started/overview)                                                                                                                                                                                                                                                                                   |
 | **Backend**                | [![FastAPI](https://img.shields.io/badge/fastapi-009485.svg?style=for-the-badge&logo=fastapi&logoColor=white)](https://fastapi.tiangolo.com)                                                                                                                                                                                                                                                                                      |
 | **GenAI**                  | [![LangChain](https://img.shields.io/badge/langchain-27403e?style=for-the-badge&logo=langchain&logoColor=white&logoSize=auto)](https://www.langchain.com/) [![AWS Bedrock](https://img.shields.io/badge/aws_bedrock-orange?style=for-the-badge&logo=icloud&logoColor=white)](https://aws.amazon.com/bedrock/) [![LanceDB](https://img.shields.io/badge/lancedb-tomato?style=for-the-badge&logoColor=white)](https://lancedb.com/) |
+| **CLI**                    | [![Typer](https://img.shields.io/badge/typer-000000?style=for-the-badge&logo=typer)](https://typer.tiangolo.com)                                                                                                                                                                                                                                                                                                                  |
 | **Package Management**     | [![UV](https://img.shields.io/badge/uv-black?style=for-the-badge&logo=astral&logoColor=D1FF4F)](https://docs.astral.sh/uv/)                                                                                                                                                                                                                                                                                                       |
