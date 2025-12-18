@@ -2442,11 +2442,6 @@
             }
           }
         },
-        "ImageConfig": {
-          "Command": [
-            "function.handler"
-          ]
-        },
         "MemorySize": 256,
         "PackageType": "Image",
         "Role": {
@@ -2748,11 +2743,6 @@
             }
           }
         },
-        "ImageConfig": {
-          "Command": [
-            "function.handler"
-          ]
-        },
         "MemorySize": 1024,
         "PackageType": "Image",
         "Role": {
@@ -2960,11 +2950,6 @@
               "Ref": "vectorstorebucket74AA40C4"
             }
           }
-        },
-        "ImageConfig": {
-          "Command": [
-            "function.handler"
-          ]
         },
         "MemorySize": 512,
         "PackageType": "Image",
