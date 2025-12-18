@@ -175,10 +175,14 @@ Generates an interactive Plotly dashboard to visualize experiment results over
 time. Shows trends in faithfulness and accuracy metrics across different
 experimental configurations.
 
+![visualize-experiments](https://github.com/user-attachments/assets/150e08bd-017d-4213-9dd2-e768c41692ce)
+
+Example output:
+
+<img width="2520" height="1274" alt="Experiment Results" src="https://github.com/user-attachments/assets/2cbbde7a-4c44-4cd2-bfba-233c96674080" /><br>
+
 > [!TIP]  
 > Hover over data points to see the detailed experiment configuration.
-
-![visualize-experiments](https://github.com/user-attachments/assets/150e08bd-017d-4213-9dd2-e768c41692ce)
 
 ## ⚙️ CI/CD
 
