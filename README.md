@@ -127,31 +127,58 @@ the LanceDB vector store. This approach combines:
 This ensures a robust retrieval process that captures both conceptually similar
 content and exact keyword matches.
 
-## (TODO: add emoji) Evaluation Module
+## 📊 Evaluation Module
 
-TODO: add intro to evaluation module.
+The evaluation module provides a comprehensive framework for testing and
+analyzing RAG system performance. It uses [RAGAS](https://ragas.io/) to generate
+synthetic test datasets, run experiments with different configurations, and
+visualize results through an interactive dashboard.
+
+The evaluation workflow consists of four main steps:
+
+1. **Create Knowledge Base** - Build an evaluation dataset from research papers
+2. **Generate Test Set** - Create synthetic question-answer pairs using RAGAS
+3. **Run Experiments** - Test different model configurations and measure
+   performance
+4. **Visualize Results** - Analyze experiment outcomes through an interactive
+   dashboard
 
 ![main](https://github.com/user-attachments/assets/6c64e370-a102-4a6e-a1da-a19644814a88)
 
-
 ### `create-kb`
+
+Creates a knowledge base for evaluation by downloading and processing a curated
+set of research papers from arXiv. The documents are stored in a LanceDB table
+named `evaluation_{embedding_model}` for use in subsequent evaluation steps.
 
 ![create-kb](https://github.com/user-attachments/assets/8f11fccb-0282-4f53-97e9-13e94b5089de)
 
 ### `generate-testset`
 
+Generates a synthetic test dataset using RAGAS based on the evaluation knowledge
+base. Creates realistic question-answer pairs with personas and different query
+types for comprehensive testing.
+
 ![generate-testset](https://github.com/user-attachments/assets/731a2d88-99fa-47cf-a65d-8e266467f815)
 
 ### `run-experiment`
+
+Runs evaluation experiments using the synthetic testset with specified model
+configurations. Measures faithfulness and answer accuracy metrics to assess RAG
+performance.
 
 ![run-experiment](https://github.com/user-attachments/assets/9a35e6d9-e853-4cc1-9dd7-7fb22a072133)
 
 ### `visualize-experiments`
 
+Generates an interactive Plotly dashboard to visualize experiment results over
+time. Shows trends in faithfulness and accuracy metrics across different
+experimental configurations.
+
+> [!TIP]  
+> Hover over data points to see the detailed experiment configuration.
+
 ![visualize-experiments](https://github.com/user-attachments/assets/150e08bd-017d-4213-9dd2-e768c41692ce)
-
-TODO: add dashboard output
-
 
 ## ⚙️ CI/CD
 
@@ -225,14 +252,15 @@ Actions**, focusing on speed, security, and developer feedback.
     output the URL of the Chainlit application and a `.env` file for local
     testing.
 
-    **Tip:** To save costs, speed up deployments, or if you're developing the
-    Chainlit UI locally, you can disable its deployment (Fargate service, Load
-    Balancer, and CloudFront distribution) by using the `deploy_chainlit`
-    context value:
-
-    ```bash
-    cdk deploy -c deploy_chainlit=false
-    ```
+    > [!TIP]  
+    > To save costs, speed up deployments, or if you're developing the Chainlit
+    > UI locally, you can disable its deployment (Fargate service, Load
+    > Balancer, and CloudFront distribution) by using the `deploy_chainlit`
+    > context value:
+    >
+    > ```bash
+    > cdk deploy -c deploy_chainlit=false
+    > ```
 
 ### Local Development and Testing
 

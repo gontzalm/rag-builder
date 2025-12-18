@@ -60,9 +60,23 @@ def visualize_experiments() -> None:
         markers=True,
         hover_data=METADATA_COLS,
         title="RAG Evaluation: Faithfulness and Accuracy Over Time",
-        labels={"experimented_at": "Experiment Run Date/Time", "score": "Metric Score"},
+        labels={
+            "experimented_at": "Experiment Run Date/Time",
+            "score": "Metric Score",
+            "metric": "Metric",
+        },
     )
-    _ = fig.update_layout(yaxis_range=[0, 1])
+    _ = fig.update_layout(
+        yaxis_range=[0, 1],
+        title_font_size=32,
+        title_x=0.5,
+        xaxis_title_font_size=24,
+        yaxis_title_font_size=24,
+        xaxis_tickfont_size=18,
+        yaxis_tickfont_size=18,
+        legend_font_size=20,
+        font_family="Arial, sans-serif",
+    )
     fig.write_html(HTML_DASHBOARD)
 
     console.print(f"💾 Visualization saved to '{HTML_DASHBOARD}'", style="success")
