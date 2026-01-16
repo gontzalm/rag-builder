@@ -76,12 +76,13 @@ async def _run_experiment(
     )
 
     evaluator_llm = InstructorLLM(
+        client=instructor.from_bedrock(
+            boto3.client("bedrock-runtime"),  # pyright: ignore[reportUnknownArgumentType, reportUnknownMemberType]
+            async_client=True,
+            inferenceConfig={"maxTokens": 8192},
+        ),
         model=evaluator_model,
         provider="bedrock",
-        client=instructor.from_bedrock(
-            boto3.client("bedrock-runtime"),  # pyright: ignore[reportUnknownMemberType, reportUnknownArgumentType]
-            async_client=True,
-        ),
     )
 
     experiment_id = uuid.uuid4()

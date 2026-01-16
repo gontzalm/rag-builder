@@ -48,7 +48,7 @@ def adapt_kg_for_persona_generation(
     llm: BaseRagasLLM,
     embedding_model: BaseRagasEmbeddings,
     sample_size: int = 20,
-    min_content_length: int = 200,  # change after tape recording
+    min_content_length: int = 500,
 ) -> None:
     """
     Augments a random subset of nodes in the provided KnowledgeGraph (kg)
@@ -138,7 +138,7 @@ def generate_testset(
         raise typer.Exit(code=1)
 
     console.print("🕸️ Creating knowledge graph from documents", style="info")
-    loader = PyPDFDirectoryLoader("documents")
+    loader = PyPDFDirectoryLoader(KB_DOCS)
     kg = KnowledgeGraph(
         [
             Node(
@@ -148,7 +148,9 @@ def generate_testset(
         ]
     )
 
-    generator_llm = LangchainLLMWrapper(ChatBedrockConverse(model=generator_model))  # pyright: ignore[reportAny]
+    generator_llm = LangchainLLMWrapper(  # pyright: ignore[reportAny]
+        ChatBedrockConverse(model=generator_model, temperature=0.0)
+    )
     generator_embeddings = LangchainEmbeddingsWrapper(  # pyright: ignore[reportAny]
         BedrockEmbeddings(model_id="amazon.titan-embed-text-v2:0")
     )
